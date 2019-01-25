@@ -1,0 +1,73 @@
+version: '3'
+services:
+  nginx:
+    build: ./nginx
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - ./nginx/ssl/:/etc/nginx/ssl/:ro
+      - ./data/wwwlogs/nginx/:/var/log/nginx/:rw
+      - ./data/wwwroot/:/data/:rw
+    restart: always
+    container_name: nginx
+
+  php:
+    build: ./php
+    depends_on:
+      - mariadb
+      - redis
+    ports:
+      - "9000"
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - ./php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
+      - ./php/conf.d/:/usr/local/etc/php-fpm.d/:ro
+      - ./php/php.ini:/usr/local/etc/php.ini:ro
+      - ./data/wwwlogs/php/:/var/log/php/:rw
+      - ./data/wwwroot/:/data/:rw
+    restart: always
+    container_name: php
+
+  # https://docs.docker.com/samples/library/mariadb/
+  mariadb:
+    image: mariadb:10.4.1
+    ports:
+      - "3306"
+    networks:
+      - backend
+    volumes:
+      - ./mariadb/conf.d/:/etc/mysql/conf.d/:ro
+      - ./data/wwwlogs/mysql/:/var/log/mysql/:rw
+      - ./data/wwwdata/mysql/:/var/lib/mysql/:rw
+    environment:
+      MYSQL_DATABASE: www
+      MYSQL_USER: www
+      MYSQL_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: 123456
+    restart: always
+    container_name: mariadb
+
+  redis:
+    build: ./redis
+    ports:
+      - "6379"
+    networks:
+      - backend
+    volumes:
+      - ./redis/redis.conf:/etc/redis.conf:ro
+      - ./data/wwwlogs/redis/:/var/log/redis/:rw
+      - ./data/wwwdata/redis/:/data/:rw
+    restart: always
+    container_name: redis
+
+networks:
+  frontend:
+  backend:
