@@ -2,6 +2,7 @@ version: '3'
 services:
   nginx:
     build: ./nginx
+    image: docker-lnmp-nginx:1.15.8
     depends_on:
       - php
     ports:
@@ -19,6 +20,7 @@ services:
 
   php:
     build: ./php
+    image: docker-lnmp-php:7.3.1
     depends_on:
       - mariadb
       - redis
@@ -38,6 +40,7 @@ services:
 
   # https://docs.docker.com/samples/library/mariadb/
   mariadb:
+    # build: ./mariadb
     image: mariadb:10.4.1
     ports:
       - "3306"
@@ -57,6 +60,7 @@ services:
 
   redis:
     build: ./redis
+    image: docker-lnmp-redis:5.0.3
     ports:
       - "6379"
     networks:
