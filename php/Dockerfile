@@ -88,7 +88,7 @@ RUN set -xe \
     gpg --batch --verify php.tar.gz.asc php.tar.gz \
     && rm -rf "$GNUPGHOME" php.tar.gz.asc \
     && mkdir -p /usr/src/php /usr/local/etc/php /data/default /var/log/php \
-    && touch /var/log/php/error.log /var/log/php/access.log \
+    && chown www-data:www-data -R /usr/src/php /usr/local/etc/php /data/default /var/log/php \
     && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
     && rm php.tar.gz \
     && cd /usr/src/php \
