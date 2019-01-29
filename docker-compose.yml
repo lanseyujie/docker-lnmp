@@ -40,14 +40,15 @@ services:
 
   # https://docs.docker.com/samples/library/mariadb/
   mariadb:
-    # build: ./mariadb
-    image: mariadb:10.4.1
+    build: ./mariadb
+    image: docker-lnmp-mariadb:10.2.19
     ports:
       - "3306"
     networks:
       - backend
     volumes:
       - ./mariadb/conf.d/:/etc/mysql/conf.d/:ro
+      - ./mariadb/initdb.d/:/docker-entrypoint-initdb.d/:ro
       - ./data/wwwlogs/mysql/:/var/log/mysql/:rw
       - ./data/wwwdata/mysql/:/var/lib/mysql/:rw
     environment:
