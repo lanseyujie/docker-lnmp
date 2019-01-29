@@ -1,0 +1,108 @@
+#!/bin/sh
+set -e
+
+chown mysql:mysql -R /data
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+    set -- mysqld "$@"
+fi
+
+if [ "$1" = "mysqld" ]; then
+
+    if [ -z "$DATADIR" ]; then
+        DATADIR=/data
+    fi
+
+    if [ -d "$DATADIR/mysql" ]; then
+        echo "[info] MySQL directory already present, skipping creation"
+        chown -R mysql:mysql "$DATADIR"
+    else
+        echo "[info] MySQL data directory not found, creating initial DBs"
+
+        mkdir -p "$DATADIR"
+
+        chown mysql:mysql -R "$DATADIR"
+
+        mysql_install_db --user=mysql --datadir="$DATADIR" # > /dev/null
+
+        "$@" --skip-networking --socket=/var/run/mysqld/mysqld.sock &
+        pid="$!"
+
+        mysql="mysql -hlocalhost --protocol=socket -uroot --socket=/var/run/mysqld/mysqld.sock"
+        
+        for i in {30..0}; do
+            if echo 'SELECT 1' | $mysql &> /dev/null; then
+                break
+            fi
+            echo '[info] MySQL init process in progress...'
+            sleep 1
+        done
+
+        if [ "$i" = 0 ]; then
+            echo >&2 '[info] MySQL init process failed.'
+            exit 1
+        fi
+
+        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+            MYSQL_ROOT_PASSWORD="$(pwgen 16 1)"
+            echo "[info] Generatwd MySQL root Password: $MYSQL_ROOT_PASSWORD"
+        fi
+
+        MYSQL_DATABASE=${MYSQL_DATABASE:-""}
+        MYSQL_USER=${MYSQL_USER:-""}
+        MYSQL_PASSWORD=${MYSQL_PASSWORD:-""}
+
+        $mysql <<-EOF
+    USE mysql;
+    DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost');
+    SET PASSWORD FOR 'root'@'localhost'=PASSWORD('$MYSQL_ROOT_PASSWORD');
+    GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+    CREATE USER 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
+	GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION;
+    DROP DATABASE IF EXISTS test;
+    FLUSH PRIVILEGES;
+EOF
+
+        if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
+			mysql="$mysql -p$MYSQL_ROOT_PASSWORD"
+		fi
+
+        if [ ! -z "$MYSQL_DATABASE" ]; then
+            echo "[info] Creating database: $MYSQL_DATABASE"
+            echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;" | $mysql
+
+            mysql="$mysql $MYSQL_DATABASE"
+        fi
+
+        if [ ! -z "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+            echo "[info] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
+            echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | $mysql
+
+            if [ "$MYSQL_DATABASE" ]; then
+                echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | $mysql
+            fi
+        fi
+
+        echo
+        for f in /docker-entrypoint-initdb.d/*; do
+            case "$f" in
+                *.sql)    echo "$0: running $f"; $mysql < "$f"; echo ;;
+                *.sql.gz) echo "$0: running $f"; gunzip -c "$f" | $mysql; echo ;;
+                *)        echo "$0: ignoring $f" ;;
+            esac
+            echo
+        done
+
+        if ! kill -s TERM "$pid" || ! wait "$pid" ; then
+            echo >&2 'MySQL init process failed.'
+            exit 1
+        fi
+
+        echo
+        echo 'MySQL init process done. Ready for start up.'
+        echo
+    fi
+fi
+
+exec "$@"
