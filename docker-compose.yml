@@ -20,7 +20,7 @@ services:
 
   php:
     build: ./php
-    image: docker-lnmp-php:7.3.1
+    image: docker-lnmp-php:7.3.2
     depends_on:
       - mariadb
       - redis
@@ -41,7 +41,7 @@ services:
   # https://docs.docker.com/samples/library/mariadb/
   mariadb:
     build: ./mariadb
-    image: docker-lnmp-mariadb:10.2.19
+    image: docker-lnmp-mariadb:10.3.12
     ports:
       - "3306"
     networks:
