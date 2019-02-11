@@ -61,7 +61,7 @@ RUN set -xe \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
-        libressl-dev \
+        openssl-dev \
         libxslt-dev \
         libxml2-dev \
         libzip-dev \
