@@ -47,7 +47,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./mariadb/conf.d/:/etc/mysql/conf.d/:ro
+      - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
       - ./mariadb/initdb.d/:/docker-entrypoint-initdb.d/:ro
       - ./data/wwwlogs/mysql/:/var/log/mysql/:rw
       - ./data/wwwdata/mysql/:/var/lib/mysql/:rw
