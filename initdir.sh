@@ -3,7 +3,7 @@ set -xe
 
 # Clean
 if [ "${1#--}" = "rm" ]; then
-    rm -rf data/
+    sudo rm -rf data/
 fi
 
 mkdir -p data/wwwlogs data/wwwdata data/wwwroot
@@ -30,3 +30,5 @@ mkdir -p data/wwwroot/default
 
 # test
 echo '<?php phpinfo();' > data/wwwroot/default/index.php
+
+sudo chown $USER:$USER -R data/
