@@ -50,7 +50,7 @@ services:
       - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
       - ./mariadb/initdb.d/:/docker-entrypoint-initdb.d/:ro
       - ./data/wwwlogs/mysql/:/var/log/mysql/:rw
-      - ./data/wwwdata/mysql/:/var/lib/mysql/:rw
+      - ./data/wwwdata/mysql/:/data/:rw
     environment:
       MYSQL_DATABASE: www
       MYSQL_USER: www
