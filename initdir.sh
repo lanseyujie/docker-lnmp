@@ -30,5 +30,6 @@ mkdir -p data/wwwroot/default
 
 # test
 echo '<?php phpinfo();' > data/wwwroot/default/index.php
+echo 'Hello World' > data/wwwroot/default/index.html
 
 sudo chown $USER:$USER -R data/
