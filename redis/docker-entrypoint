@@ -9,7 +9,7 @@ fi
 
 # allow the container to be started with `--user`
 if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
-	if [ ! -f /data/dump.rdb -a -z "$REDIS_PASSWORD" ]; then
+	if [ ! -f /data/dump.rdb -a ! -z "$REDIS_PASSWORD" ]; then
 		sed -i "s/#requirepass/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
 	fi
 
