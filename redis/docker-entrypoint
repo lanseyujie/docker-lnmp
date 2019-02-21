@@ -9,8 +9,12 @@ fi
 
 # allow the container to be started with `--user`
 if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
-	find . \! -user redis -exec chown redis '{}' +
+	if [ ! -f /data/dump.rdb -a -z "$REDIS_PASSWORD" ]; then
+		sed -i "s/#requirepass/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
+	fi
+
 	chown -R redis:redis /data /var/log/redis
+
 	exec su-exec redis "$0" "$@"
 fi
 
