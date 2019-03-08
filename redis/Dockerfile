@@ -39,7 +39,7 @@ RUN set -ex \
     && make -C /usr/src/redis -j$(nproc) \
     && make -C /usr/src/redis install \
     && strip /usr/local/bin/redis* \
-    && cp /usr/src/redis/redis.conf /etc/redis \
+    && cp /usr/src/redis/redis.conf /etc/redis.conf \
     && rm -r /usr/src/redis \
     && runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
