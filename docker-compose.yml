@@ -67,7 +67,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./redis/redis.conf:/etc/redis.conf:rw
+      - ./redis/redis.conf:/tmp/redis.conf:ro
       - ./data/wwwlogs/redis/:/var/log/redis/:rw
       - ./data/wwwdata/redis/:/data/:rw
     environment:

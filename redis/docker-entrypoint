@@ -10,8 +10,15 @@ if [ "${1#-}" != "$1" ] || [ "${1%.conf}" != "$1" ]; then
 fi
 
 if [ "$1" = 'redis-server' ]; then
-	if [ ! -f /data/dump.rdb -a ! -z "$REDIS_PASSWORD" ]; then
-		sed -i "s/^# requirepass.*$/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
+    # first boot
+	if [ ! -f /data/dump.rdb ]; then
+		if [ -f /tmp/redis.conf ]; then
+			cp -f /tmp/redis.conf /etc/redis.conf
+		fi
+
+		if [ ! -z "$REDIS_PASSWORD" ]; then
+			sed -i "s/^# requirepass.*$/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
+		fi
 	fi
 
 	if [ "$(id -u)" = '0' ]; then
