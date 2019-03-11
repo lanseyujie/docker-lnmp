@@ -1,21 +1,22 @@
 #!/bin/sh
 set -e
 
+chown -R redis:redis /data /var/log/redis
+
 # first arg is `-f` or `--some-option`
 # or first arg is `something.conf`
 if [ "${1#-}" != "$1" ] || [ "${1%.conf}" != "$1" ]; then
 	set -- redis-server "$@"
-else
-	if [ ! -f /data/dump.rdb -a ! -z "$REDIS_PASSWORD" ]; then
-		sed -i "s/#requirepass/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
-	fi
 fi
 
-# allow the container to be started with `--user`
-if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
-	chown -R redis:redis /data /var/log/redis
+if [ "$1" = 'redis-server' ]; then
+	if [ ! -f /data/dump.rdb -a ! -z "$REDIS_PASSWORD" ]; then
+		sed -i "s/^# requirepass.*$/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
+	fi
 
-	exec su-exec redis "$0" "$@"
+	if [ "$(id -u)" = '0' ]; then
+		set -- su-exec redis "$@"
+	fi
 fi
 
 exec "$@"
