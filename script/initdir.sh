@@ -1,9 +1,11 @@
 #!/bin/sh
 set -xe
 
+cd $(dirname $0)
+
 # Clean
 if [ "${1#--}" = "rm" ]; then
-    sudo rm -rf data/
+    sudo rm -rf ../data/
 fi
 
 mkdir -p data/wwwlogs data/wwwdata data/wwwroot
@@ -33,3 +35,5 @@ echo '<?php phpinfo();' > data/wwwroot/default/index.php
 echo 'Hello World' > data/wwwroot/default/index.html
 
 sudo chown $USER:$USER -R data/
+
+mv data/ ../
