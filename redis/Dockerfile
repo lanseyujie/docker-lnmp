@@ -2,10 +2,10 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 5.0.3
+ENV REDIS_VERSION 5.0.4
 
 RUN set -ex \
-    && SHA256SUM=e290b4ddf817b26254a74d5d564095b11f9cd20d8f165459efa53eb63cd93e02 \
+    && SHA256SUM=3ce9ceff5a23f60913e1573f6dfcd4aa53b42d4a2789e28fa53ec2bd28c987dd \
     && addgroup -g 82 -S redis \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
