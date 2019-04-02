@@ -2,7 +2,7 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV MARIADB_VERSION 10.3.12
+ENV MARIADB_VERSION 10.3.13
 
 RUN set -xe \
     && addgroup -g 82 -S mysql \
