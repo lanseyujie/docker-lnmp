@@ -2,10 +2,11 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.3
+ENV PHP_VERSION 7.3.4
 
 RUN set -xe \
     && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
+    && SHA256SUM=dd41ecf43fe1172030f41d2581909457a0af7bd137a057c3874e0b0f3c2e8761 \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
@@ -77,8 +78,9 @@ RUN set -xe \
         dpkg-dev \
         curl \
         gnupg \
-    && curl -fSL https://secure.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror -o php.tar.gz \
-    && curl -fSL https://secure.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror -o php.tar.gz.asc \
+    && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror -o php.tar.gz \
+    && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
+    && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror -o php.tar.gz.asc \
     && export GNUPGHOME="$(mktemp -d)" \
     && found=''; \
     for key in $GPG_KEYS; do \
