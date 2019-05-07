@@ -2,11 +2,11 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.4
+ENV PHP_VERSION 7.3.5
 
 RUN set -xe \
     && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
-    && SHA256SUM=dd41ecf43fe1172030f41d2581909457a0af7bd137a057c3874e0b0f3c2e8761 \
+    && SHA256SUM=c953749b7f3310a3a74f920ef698f6d1c04636d11656ac9ffb3ab10d34e30e1e \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
@@ -120,7 +120,7 @@ RUN set -xe \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
     && apk add --no-cache --virtual .php-rundeps $runDeps \
-    && apk del .build-deps \
+    && apk del --no-network .build-deps \
     \
     # https://github.com/docker-library/php/issues/443
     && pecl update-channels \
