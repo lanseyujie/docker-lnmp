@@ -2,11 +2,11 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.5
+ENV PHP_VERSION 7.3.6
 
 RUN set -xe \
     && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
-    && SHA256SUM=c953749b7f3310a3a74f920ef698f6d1c04636d11656ac9ffb3ab10d34e30e1e \
+    && SHA256SUM=72fbf223ff8659a61eed08eebffb4ede0256e7a69d2151ae24affa5377b70bb8 \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
@@ -163,5 +163,9 @@ ENTRYPOINT ["docker-entrypoint"]
 WORKDIR /data
 
 EXPOSE 9000
+
+# Override stop signal to stop process gracefully
+# https://github.com/php/php-src/blob/17baa87faddc2550def3ae7314236826bc1b1398/sapi/fpm/php-fpm.8.in#L163
+STOPSIGNAL SIGQUIT
 
 CMD ["php-fpm"]
