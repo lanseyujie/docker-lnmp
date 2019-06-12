@@ -42,3 +42,10 @@ docker-compose stop
 # Logs
 docker-compose logs
 ```
+
+## Other
+
+```bash
+# PHP Built-in HTTP Server
+docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
+```
