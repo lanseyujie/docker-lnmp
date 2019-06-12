@@ -2,13 +2,14 @@ FROM alpine:3.9
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV NGINX_VERSION 1.15.12
+ENV NGINX_VERSION 1.17.0
 
 RUN set -xe \
     && GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && CONFIG="\
         --prefix=/etc/nginx \
         --sbin-path=/usr/sbin/nginx \
+        --modules-path=/etc/nginx/modules \
         --conf-path=/etc/nginx/nginx.conf \
         --error-log-path=/var/log/nginx/error.log \
         --http-log-path=/var/log/nginx/access.log \
@@ -21,6 +22,8 @@ RUN set -xe \
         --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
         --user=nginx \
         --group=nginx \
+        --with-file-aio \
+        --with-http_v2_module \
         --with-http_ssl_module \
         --with-http_realip_module \
         --with-http_sub_module \
@@ -29,12 +32,12 @@ RUN set -xe \
         --with-http_gzip_static_module \
         --with-http_secure_link_module \
         --with-http_stub_status_module \
+        --with-mail \
+        --with-mail_ssl_module \
         --with-stream \
         --with-stream_ssl_module \
         --with-stream_ssl_preread_module \
         --with-stream_realip_module \
-        --with-file-aio \
-        --with-http_v2_module \
     " \
     && addgroup -g 82 -S nginx \
     && adduser -u 82 -D -S -s /sbin/nologin -G nginx nginx \
@@ -53,15 +56,7 @@ RUN set -xe \
     && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
     && export GNUPGHOME="$(mktemp -d)" \
     && found=''; \
-    for server in \
-        ha.pool.sks-keyservers.net \
-        hkp://keyserver.ubuntu.com:80 \
-        hkp://p80.pool.sks-keyservers.net:80 \
-        pgp.mit.edu \
-    ; do \
-        echo "Fetching GPG key $GPG_KEYS from $server"; \
-        gpg --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" && found=yes && break; \
-    done; \
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" && found=yes && break; \
     test -z "$found" && echo >&2 "error: failed to fetch GPG key $GPG_KEYS" && exit 1; \
     gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
     && rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
