@@ -48,11 +48,10 @@ RUN set -xe \
         --with-zlib \
         --with-libzip \
     " \
+    # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
     && addgroup -g 82 -S www-data \
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
-    \
-    # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
         autoconf \
         gcc \

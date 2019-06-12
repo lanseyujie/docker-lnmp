@@ -38,7 +38,7 @@ RUN set -xe \
     " \
     && addgroup -g 82 -S nginx \
     && adduser -u 82 -D -S -s /sbin/nologin -G nginx nginx \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
         gcc \
         libc-dev \
