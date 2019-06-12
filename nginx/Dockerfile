@@ -89,7 +89,9 @@ RUN set -xe \
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
+COPY conf.d/http/default.conf /etc/nginx/conf.d/http/default.conf
+
+COPY conf.d/stream/default.conf /etc/nginx/conf.d/stream/default.conf
 
 WORKDIR /data
 
