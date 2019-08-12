@@ -1,11 +1,11 @@
-FROM alpine:3.9
+FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 5.0.4
+ENV REDIS_VERSION 5.0.5
 
 RUN set -ex \
-    && SHA256SUM=3ce9ceff5a23f60913e1573f6dfcd4aa53b42d4a2789e28fa53ec2bd28c987dd \
+    && SHA256SUM=2139009799d21d8ff94fc40b7f36ac46699b9e1254086299f8d3b223ca54a375 \
     && addgroup -g 82 -S redis \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
     # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
