@@ -2,11 +2,11 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.8
+ENV PHP_VERSION 7.3.9
 
 RUN set -xe \
     && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
-    && SHA256SUM=31af3eff3337fb70733c9b02a3444c3dae662ecab20aeec7fdc3c42e22071490 \
+    && SHA256SUM=5ecc1b1ad7228ed2e99a970c45358871644fcab1d9fd079a7b129326a7bde42d \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
