@@ -8,7 +8,7 @@ RUN set -ex \
     && SHA256SUM=2139009799d21d8ff94fc40b7f36ac46699b9e1254086299f8d3b223ca54a375 \
     && addgroup -g 82 -S redis \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     \
     # grab su-exec for easy step-down from root
     && apk add --no-cache 'su-exec>=0.2' \

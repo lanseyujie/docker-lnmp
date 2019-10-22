@@ -7,7 +7,7 @@ ENV MARIADB_VERSION 10.3.17
 RUN set -xe \
     && addgroup -g 82 -S mysql \
     && adduser -u 82 -D -S -s /sbin/nologin -G mysql mysql \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && mkdir -p /var/run/mysqld /data /var/log/mysql \
     && chown mysql:mysql -R /var/run/mysqld /data /var/log/mysql \
     && apk add --no-cache mariadb mariadb-client pwgen \
