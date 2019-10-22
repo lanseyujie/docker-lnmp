@@ -2,11 +2,11 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.9
+ENV PHP_VERSION 7.3.10
 
 RUN set -xe \
     && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
-    && SHA256SUM=5ecc1b1ad7228ed2e99a970c45358871644fcab1d9fd079a7b129326a7bde42d \
+    && SHA256SUM=fb670723a9b8fda31c89529f27e0dda289d8af4b6ce9f152c8010876639c0fb4 \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
@@ -100,7 +100,8 @@ RUN set -xe \
     # Enable linker optimization (this sorts the hash buckets to improve cache locality, and is non-default)
     # Adds GNU HASH segments to generated executables (this is used if present, and is much faster than sysv hash; in this configuration, sysv hash is also generated)
     # https://github.com/docker-library/php/issues/272
-    && export CFLAGS="-fstack-protector-strong -fpic -fpie -O2" \
+    # -D_LARGEFILE_SOURCE and -D_FILE_OFFSET_BITS=64 (https://www.php.net/manual/en/intro.filesystem.php)
+    && export CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64" \
     && CPPFLAGS="$CFLAGS" \
     && LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
