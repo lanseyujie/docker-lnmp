@@ -43,7 +43,7 @@ services:
     build: ./mariadb
     image: docker-lnmp-mariadb:latest
     ports:
-      - "3306"
+      - "3306:3306"
     networks:
       - backend
     volumes:
@@ -63,7 +63,7 @@ services:
     build: ./redis
     image: docker-lnmp-redis:latest
     ports:
-      - "6379"
+      - "6379:6379"
     networks:
       - backend
     volumes:
