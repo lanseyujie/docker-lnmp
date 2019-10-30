@@ -68,32 +68,32 @@ $ docker image rm registry.cn-qingdao.aliyuncs.com/lanseyujie/docker-lnmp-redis:
 
 ```bash
 # Clone
-git clone https://github.com/lanseyujie/docker-lnmp.git
+$ git clone https://github.com/lanseyujie/docker-lnmp.git
 
-cd docker-lnmp
+$ cd docker-lnmp
 
 # Build & Start
-docker-compose up -d
+$ docker-compose up -d
 
 # Stop & Remove
-docker-compose down
+$ docker-compose down
 
 # Start
-docker-compose start
+$ docker-compose start
 
 # Restart
-docker-compose restart
+$ docker-compose restart
 
 # Stop
-docker-compose stop
+$ docker-compose stop
 
 # Logs
-docker-compose logs
+$ docker-compose logs
 ```
 
 ## Other
 
 ```bash
 # PHP Built-in HTTP Server
-docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
+$ docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
 ```
