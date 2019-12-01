@@ -2,10 +2,10 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 5.0.5
+ENV REDIS_VERSION 5.0.7
 
 RUN set -ex \
-    && SHA256SUM=2139009799d21d8ff94fc40b7f36ac46699b9e1254086299f8d3b223ca54a375 \
+    && SHA256SUM=61db74eabf6801f057fd24b590232f2f337d422280fd19486eca03be87d3a82b \
     && addgroup -g 82 -S redis \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
     \
