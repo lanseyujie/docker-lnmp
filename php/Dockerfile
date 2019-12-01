@@ -52,7 +52,7 @@ RUN set -xe \
         --with-mhash \
         --with-mysqli=mysqlnd \
         --with-pdo-mysql=mysqlnd \
-		--with-sqlite3=/usr \
+        --with-sqlite3=/usr \
         --with-pdo-sqlite=/usr \
         --with-xmlrpc \
         --with-xsl \
