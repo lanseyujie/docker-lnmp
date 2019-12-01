@@ -22,11 +22,6 @@ RUN set -xe \
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
         --with-libdir=/usr/lib \
-        --with-webp-dir=/usr/include \
-        --with-jpeg-dir=/usr/include \
-        --with-png-dir=/usr/include \
-        --with-freetype-dir=/usr/include \
-        --with-libxml-dir=/usr/include \
         --with-iconv-dir=/usr/include \
         --with-fpm-user=www-data \
         --with-fpm-group=www-data \
@@ -44,40 +39,47 @@ RUN set -xe \
         --enable-soap \
         --enable-sockets \
         --enable-sysvsem \
-        --enable-zip \
-        --enable-exif \
         --enable-ftp \
+        --enable-exif \
+        --enable-gd \
+        --with-webp \
+        --with-jpeg \
+        --with-freetype \
         --with-openssl \
         --with-curl \
-        --with-gd \
         --with-gettext \
         --with-libedit \
         --with-mhash \
         --with-mysqli=mysqlnd \
         --with-pdo-mysql=mysqlnd \
+		--with-sqlite3=/usr \
+        --with-pdo-sqlite=/usr \
         --with-xmlrpc \
         --with-xsl \
         --with-zlib \
-        --with-libzip \
+        --with-zip \
     " \
     # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
     && addgroup -g 82 -S www-data \
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
         ${PHPIZE_DEPS} \
+        icu-dev \
+        oniguruma-dev \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
+        freetype-dev \
         openssl-dev \
+        sqlite-dev \
+        curl-dev \
+        gettext-dev \
+        libedit-dev \
         libxslt-dev \
         libxml2-dev \
         libzip-dev \
-        libedit-dev \
-        gettext-dev \
-        freetype-dev \
-        curl-dev \
-        icu-dev \
-        bison \
+        openssl \
         curl \
         gnupg \
     && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror -o php.tar.gz \
@@ -152,7 +154,8 @@ RUN set -xe \
     && sed -i 's/;decorate_workers_output = no/decorate_workers_output = no/' php-fpm.d/www.conf \
     \
     # forward request and error logs to docker log collector
-    && ln -sf /dev/stderr /var/log/php/error.log
+    && ln -sf /dev/stderr /var/log/php/error.log \
+    && php --version
 
 COPY docker-entrypoint /usr/local/bin/
 
