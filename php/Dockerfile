@@ -63,7 +63,7 @@ RUN set -xe \
     && addgroup -g 82 -S www-data \
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
     && apk add --no-cache --virtual .build-deps \
-        ${PHPIZE_DEPS} \
+        $PHPIZE_DEPS \
         icu-dev \
         oniguruma-dev \
         libjpeg-turbo-dev \
@@ -78,6 +78,9 @@ RUN set -xe \
         libxslt-dev \
         libxml2-dev \
         libzip-dev \
+        \
+        # fix: configure: WARNING: Libzip >= 1.2.0 needed for encryption support
+        libgcrypt-dev \
         openssl \
         curl \
         gnupg \
@@ -125,10 +128,6 @@ RUN set -xe \
     )" \
     && apk add --no-cache --virtual .php-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    \
-    # https://github.com/docker-library/php/issues/443
-    && pecl update-channels \
-    && rm -rf /tmp/pear ~/.pearrc /usr/src/php \
     && cd /usr/local/etc \
     \
     # for some reason, upstream's php-fpm.conf.default has "include=NONE/etc/php-fpm.d/*.conf"
