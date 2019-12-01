@@ -62,7 +62,6 @@ RUN set -xe \
     # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
     && addgroup -g 82 -S www-data \
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
         ${PHPIZE_DEPS} \
         icu-dev \
