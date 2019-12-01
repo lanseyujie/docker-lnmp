@@ -1,5 +1,7 @@
 # docker-lnmp
 
+[![Build Status](https://travis-ci.org/lanseyujie/docker-lnmp.svg?branch=master)](https://travis-ci.org/lanseyujie/docker-lnmp)
+
 ## Docker
 
 [Get Docker Engine - Community for Debian](https://docs.docker.com/install/linux/docker-ce/debian/ "Get Docker Engine - Community for Debian")
