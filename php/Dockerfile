@@ -2,11 +2,22 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.3.10
+ENV PHP_VERSION 7.4.0
+
+ENV PHPIZE_DEPS \
+		autoconf \
+		dpkg-dev dpkg \
+		file \
+		g++ \
+		gcc \
+		libc-dev \
+		make \
+		pkgconf \
+		re2c
 
 RUN set -xe \
-    && GPG_KEYS="CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D" \
-    && SHA256SUM=fb670723a9b8fda31c89529f27e0dda289d8af4b6ce9f152c8010876639c0fb4 \
+    && GPG_KEYS="5A52880781F755608BF815FC910DEB46F53EA312 42670A7FE4D0441C8E4632349E4FDC074A4EF02D" \
+    && SHA256SUM=004a1a8176176ee1b5c112e73d705977507803f425f9e48cb4a84f42b22abf22 \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
@@ -19,6 +30,7 @@ RUN set -xe \
         --with-iconv-dir=/usr/include \
         --with-fpm-user=www-data \
         --with-fpm-group=www-data \
+        --disable-cgi \
         --disable-rpath \
         --enable-option-checking=fatal \
         --enable-fpm \
@@ -51,13 +63,8 @@ RUN set -xe \
     # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
     && addgroup -g 82 -S www-data \
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
-        autoconf \
-        gcc \
-        g++ \
-        make \
-        libc-dev \
+        ${PHPIZE_DEPS} \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
@@ -70,17 +77,13 @@ RUN set -xe \
         freetype-dev \
         curl-dev \
         icu-dev \
-        file \
         bison \
-        re2c \
-        dpkg \
-        dpkg-dev \
         curl \
         gnupg \
     && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror -o php.tar.gz \
     && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
     && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror -o php.tar.gz.asc \
-    && export GNUPGHOME="$(mktemp -d)" \
+    && GNUPGHOME="$(mktemp -d)" \
     && found=''; \
     for key in $GPG_KEYS; do \
         gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$key" && found=yes && break; \
@@ -101,7 +104,7 @@ RUN set -xe \
     # Adds GNU HASH segments to generated executables (this is used if present, and is much faster than sysv hash; in this configuration, sysv hash is also generated)
     # https://github.com/docker-library/php/issues/272
     # -D_LARGEFILE_SOURCE and -D_FILE_OFFSET_BITS=64 (https://www.php.net/manual/en/intro.filesystem.php)
-    && export CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64" \
+    && CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64" \
     && CPPFLAGS="$CFLAGS" \
     && LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
