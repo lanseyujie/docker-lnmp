@@ -2,7 +2,7 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV NGINX_VERSION 1.17.3
+ENV NGINX_VERSION 1.17.6
 
 RUN set -xe \
     && GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
@@ -52,7 +52,7 @@ RUN set -xe \
         curl \
         gnupg \
     && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
-    && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
+    && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc -o nginx.tar.gz.asc \
     && export GNUPGHOME="$(mktemp -d)" \
     && found=''; \
     gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" && found=yes && break; \
