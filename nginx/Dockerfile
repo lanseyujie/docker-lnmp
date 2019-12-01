@@ -41,7 +41,6 @@ RUN set -xe \
     " \
     && addgroup -g 82 -S nginx \
     && adduser -u 82 -D -S -s /sbin/nologin -G nginx nginx \
-    # && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .build-deps \
         gcc \
         libc-dev \
@@ -80,10 +79,6 @@ RUN set -xe \
     && apk add --no-cache --virtual .nginx-rundeps $runDeps \
     && apk del .build-deps \
     \
-    # Bring in tzdata so users could set the timezones through the environment variables
-    && apk add --no-cache tzdata \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo "Asia/Shanghai" > /etc/timezone \
     # forward request and error logs to docker log collector
     && ln -sf /dev/stderr /var/log/nginx/error.log
 

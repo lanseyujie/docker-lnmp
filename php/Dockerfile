@@ -128,11 +128,6 @@ RUN set -xe \
     # https://github.com/docker-library/php/issues/443
     && pecl update-channels \
     && rm -rf /tmp/pear ~/.pearrc /usr/src/php \
-    \
-    # Bring in tzdata so users could set the timezones through the environment variables
-    && apk add --no-cache tzdata \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo "Asia/Shanghai" > /etc/timezone \
     && cd /usr/local/etc \
     \
     # for some reason, upstream's php-fpm.conf.default has "include=NONE/etc/php-fpm.d/*.conf"
