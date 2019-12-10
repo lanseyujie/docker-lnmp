@@ -8,9 +8,11 @@ cmd="apk add --no-cache tzdata \
     && ln -sf /usr/share/zoneinfo/$timezone /etc/localtime \
     && echo $timezone > /etc/timezone"
 
-docker exec mariadb sh -c "$cmd"
-docker exec redis sh -c "$cmd"
-docker exec nginx sh -c "$cmd"
-docker exec php sh -c "$cmd"
+lnmp="mariadb redis php nginx"
+
+for i in $lnmp
+do
+    docker exec $i sh -c "$cmd"
+done
 
 docker-compose restart

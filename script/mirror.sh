@@ -1,11 +1,15 @@
 #!/bin/sh
 set -xe
 
-cmd="sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories"
+mirror="mirrors.huaweicloud.com"
 
-docker exec mariadb sh -c "$cmd"
-docker exec redis sh -c "$cmd"
-docker exec nginx sh -c "$cmd"
-docker exec php sh -c "$cmd"
+cmd="sed -i 's/dl-cdn.alpinelinux.org/$mirror/g' /etc/apk/repositories"
+
+lnmp="mariadb redis php nginx"
+
+for i in $lnmp
+do
+    docker exec $i sh -c "$cmd"
+done
 
 docker-compose restart
