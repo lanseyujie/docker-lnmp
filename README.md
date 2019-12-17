@@ -74,4 +74,7 @@ $ docker-compose logs
 ```bash
 # PHP Built-in HTTP Server
 $ docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
+
+# Auto Backup Database
+$ echo "0 3 * * * $(pwd)/script/autobak.sh -uroot -p123456 -dwww" | sudo tee -a /var/spool/cron/crontabs/$USER && sudo chmod 600 /var/spool/cron/crontabs/$USER && sudo chown $USER:crontab /var/spool/cron/crontabs/$USER && sudo service cron restart
 ```
