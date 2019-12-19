@@ -2,7 +2,7 @@ FROM alpine:3.10
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.4.0
+ENV PHP_VERSION 7.4.1
 
 ENV PHPIZE_DEPS \
 		autoconf \
@@ -17,7 +17,7 @@ ENV PHPIZE_DEPS \
 
 RUN set -xe \
     && GPG_KEYS="5A52880781F755608BF815FC910DEB46F53EA312 42670A7FE4D0441C8E4632349E4FDC074A4EF02D" \
-    && SHA256SUM=004a1a8176176ee1b5c112e73d705977507803f425f9e48cb4a84f42b22abf22 \
+    && SHA256SUM=67265d6bd48d828f4725964f71ca5c76c3da63b0d07bec5ec4e5acfdd3708073 \
     && CONFIG="\
         --with-config-file-path=/usr/local/etc \
         --with-config-file-scan-dir=/usr/local/etc/php \
