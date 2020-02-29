@@ -1,8 +1,8 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV MARIADB_VERSION 10.3.18
+ENV MARIADB_VERSION 10.4.12
 
 RUN set -xe \
     && addgroup -g 82 -S mysql \

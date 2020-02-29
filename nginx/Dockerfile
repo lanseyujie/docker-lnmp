@@ -1,8 +1,8 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV NGINX_VERSION 1.17.6
+ENV NGINX_VERSION 1.17.8
 
 RUN set -xe \
     && GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
