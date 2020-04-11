@@ -38,7 +38,7 @@ $ sudo groupadd docker
 $ sudo usermod -aG docker $USER
 
 # install docker-compose
-$ sudo curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+$ sudo curl -L https://github.com/docker/compose/releases/download/1.25.5/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 $ sudo chmod +x /usr/local/bin/docker-compose
 ```
 
@@ -67,6 +67,30 @@ $ docker-compose stop
 
 # Logs
 $ docker-compose logs
+```
+
+## SSL Deploy
+
+```bash
+# install acme.sh
+curl https://get.acme.sh | sh
+
+# set api key
+# see https://github.com/Neilpang/acme.sh/wiki/dnsapi
+export Ali_Key="12345678"
+export Ali_Secret="abcdefg"
+
+# issue a cert
+# see https://github.com/Neilpang/acme.sh/wiki/%E8%AF%B4%E6%98%8E
+acme.sh --issue --dns dns_ali -d example.com -d *.example.com
+
+# auto update
+acme.sh --install-cert \
+    -d example.com \
+    -d *.example.com \
+    --key-file $(pwd)/nginx/ssl/example.com.key \
+    --fullchain-file $(pwd)/nginx/ssl/example.com.cer \
+    --reloadcmd "docker restart nginx"
 ```
 
 ## Other
