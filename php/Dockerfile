@@ -2,25 +2,81 @@ FROM alpine:3.11
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 7.4.3
+ENV PHP_VERSION 7.4.5
+ENV GPG_KEYS 42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC910DEB46F53EA312
+ENV SHA256SUM 1ef619411b0bd68c0fbfd2a6c622ad6bc524d0bceb8476fb9807a23a0fe9a343
 
+# dependencies required for running "phpize"
 ENV PHPIZE_DEPS \
-		autoconf \
-		dpkg-dev dpkg \
-		file \
-		g++ \
-		gcc \
-		libc-dev \
-		make \
-		pkgconf \
-		re2c
+        autoconf \
+        dpkg-dev dpkg \
+        file \
+        g++ \
+        gcc \
+        libc-dev \
+        make \
+        pkgconf \
+        re2c
 
-RUN set -xe \
-    && GPG_KEYS="5A52880781F755608BF815FC910DEB46F53EA312 42670A7FE4D0441C8E4632349E4FDC074A4EF02D" \
-    && SHA256SUM=58e421a1dba10da8542a014535cac77a78f0271afb901cc2bd363b881895a9ed \
+# Apply stack smash protection to functions using local buffers and alloca()
+# Make PHP's main executable position-independent (improves ASLR security mechanism, and has no performance impact on x86_64)
+# Enable optimization (-O2)
+# Enable linker optimization (this sorts the hash buckets to improve cache locality, and is non-default)
+# https://github.com/docker-library/php/issues/272
+# -D_LARGEFILE_SOURCE and -D_FILE_OFFSET_BITS=64 (https://www.php.net/manual/en/intro.filesystem.php)
+ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+ENV PHP_CPPFLAGS="$PHP_CFLAGS"
+ENV PHP_LDFLAGS="-Wl,-O1 -pie"
+
+RUN set -eux \
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
+    && apk add --no-cache --virtual .fetch-deps gnupg curl \
+    && mkdir -p /usr/src/php \
+    && cd /usr/src/php \
+    && curl -fsSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
+    && curl -fsSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
+    && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && for key in $GPG_KEYS; do \
+        gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$key"; \
+    done \
+    && gpg --batch --verify php.tar.gz.asc php.tar.gz \
+    && gpgconf --kill all \
+    && rm -rf "$GNUPGHOME" php.tar.gz.asc \
+    && apk del --no-network .fetch-deps
+
+RUN set -eux \
+    \
+    # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
+    && addgroup -g 82 -S www-data \
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        icu-dev \
+        oniguruma-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+        freetype-dev \
+        openssl-dev \
+        sqlite-dev \
+        curl-dev \
+        gettext-dev \
+        libedit-dev \
+        libxslt-dev \
+        libxml2-dev \
+        libzip-dev \
+    && mkdir -p /usr/local/etc/php/conf.d /data/default /var/log/php \
+    && chown www-data:www-data -R /usr/src/php /usr/local/etc/php /data/default /var/log/php \
+    && cd /usr/src/php \
+    && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
+    && rm php.tar.gz \
+    && export CFLAGS="$PHP_CFLAGS" \
+    && export CPPFLAGS="$PHP_CPPFLAGS" \
+    && export LDFLAGS="$PHP_LDFLAGS" \
     && CONFIG="\
-        --with-config-file-path=/usr/local/etc \
-        --with-config-file-scan-dir=/usr/local/etc/php \
+        --with-config-file-path=/usr/local/etc/php \
+        --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
         --with-libdir=/usr/lib \
         --with-iconv-dir=/usr/include \
         --with-fpm-user=www-data \
@@ -59,66 +115,16 @@ RUN set -xe \
         --with-zlib \
         --with-zip \
     " \
-    # ensure www-data user exists, 82 is the standard uid/gid for "www-data" in Alpine
-    && addgroup -g 82 -S www-data \
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
-    && apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        icu-dev \
-        oniguruma-dev \
-        libjpeg-turbo-dev \
-        libpng-dev \
-        libwebp-dev \
-        freetype-dev \
-        openssl-dev \
-        sqlite-dev \
-        curl-dev \
-        gettext-dev \
-        libedit-dev \
-        libxslt-dev \
-        libxml2-dev \
-        libzip-dev \
-        \
-        # fix: configure: WARNING: Libzip >= 1.2.0 needed for encryption support
-        libgcrypt-dev \
-        openssl \
-        curl \
-        gnupg \
-    && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror -o php.tar.gz \
-    && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
-    && curl -fSL https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror -o php.tar.gz.asc \
-    && GNUPGHOME="$(mktemp -d)" \
-    && found=''; \
-    for key in $GPG_KEYS; do \
-        gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$key" && found=yes && break; \
-    done; \
-    test -z "$found" && echo >&2 "error: failed to fetch GPG key $GPG_KEYS" && exit 1; \
-    gpg --batch --verify php.tar.gz.asc php.tar.gz \
-    && rm -rf "$GNUPGHOME" php.tar.gz.asc \
-    && mkdir -p /usr/src/php /usr/local/etc/php /data/default /var/log/php \
-    && chown www-data:www-data -R /usr/src/php /usr/local/etc/php /data/default /var/log/php \
-    && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
-    && rm php.tar.gz \
-    && cd /usr/src/php \
-    \
-    # Apply stack smash protection to functions using local buffers and alloca()
-    # Make PHP's main executable position-independent (improves ASLR security mechanism, and has no performance impact on x86_64)
-    # Enable optimization (-O2)
-    # Enable linker optimization (this sorts the hash buckets to improve cache locality, and is non-default)
-    # Adds GNU HASH segments to generated executables (this is used if present, and is much faster than sysv hash; in this configuration, sysv hash is also generated)
-    # https://github.com/docker-library/php/issues/272
-    # -D_LARGEFILE_SOURCE and -D_FILE_OFFSET_BITS=64 (https://www.php.net/manual/en/intro.filesystem.php)
-    && CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64" \
-    && CPPFLAGS="$CFLAGS" \
-    && LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie" \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && ./configure --build="$gnuArch" $CONFIG \
     && make -j$(nproc) \
+    && find -type f -name '*.a' -delete \
     && make install \
-    && { find /usr/local/bin /usr/local/sbin /usr/local/lib/php/extensions -type f -perm +0111 -exec strip --strip-all '{}' + || true; } \
+    && find /usr/local/bin /usr/local/sbin -type f -perm +0111 -exec strip --strip-all '{}' + || true \
     && make clean \
     && echo '<?php phpinfo();' > /data/default/index.php \
-    && cp -v php.ini-production /usr/local/etc/php.ini \
+    && cp -v php.ini-* /usr/local/etc/php \
+    && rm -rf /usr/src/php \
     && cd / \
     && runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
@@ -126,9 +132,11 @@ RUN set -xe \
             | sort -u \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
-    && apk add --no-cache --virtual .php-rundeps $runDeps \
-    && apk del --no-network .build-deps \
-    && cd /usr/local/etc \
+    && apk add --no-cache $runDeps \
+    && apk del --no-network .build-deps
+
+RUN set -eux \
+    cd /usr/local/etc \
     \
     # for some reason, upstream's php-fpm.conf.default has "include=NONE/etc/php-fpm.d/*.conf"
     && sed 's!=NONE/!=!g' php-fpm.conf.default | tee php-fpm.conf > /dev/null \
@@ -145,11 +153,18 @@ RUN set -xe \
     && sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 10/' php-fpm.d/www.conf \
     && sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 20/' php-fpm.d/www.conf \
     && sed -i 's/;pm.max_requests = 500/pm.max_requests = 1024/' php-fpm.d/www.conf \
-    && sed -i 's/;access.log = log\/$pool.access.log/access.log = \/var\/log\/php\/access.log/' php-fpm.d/www.conf \
-    && sed -i 's/;slowlog = log\/$pool.log.slow/slowlog = \/var\/log\/php\/slow.log/' php-fpm.d/www.conf \
+    && sed -i 's/;access.log = log\/\$pool.access.log/access.log = \/var\/log\/php\/access.log/' php-fpm.d/www.conf \
+    && sed -i 's/;slowlog = log\/\$pool.log.slow/slowlog = \/var\/log\/php\/slow.log/' php-fpm.d/www.conf \
     && sed -i 's/;request_terminate_timeout = 0/request_terminate_timeout = 100/' php-fpm.d/www.conf \
     && sed -i 's/;catch_workers_output = yes/catch_workers_output = yes/' php-fpm.d/www.conf \
     && sed -i 's/;decorate_workers_output = no/decorate_workers_output = no/' php-fpm.d/www.conf \
+    \
+    # php.ini
+    && cp -v php/php.ini-production php/php.ini \
+    && disable="passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server" \
+    && sed -i "s/disable_functions =/disable_functions = $disable/" php/php.ini \
+    && sed -i 's/expose_php = On/expose_php = Off/' php/php.ini \
+    && sed -i 's/;date.timezone =/;date.timezone = Asia\/Shanghai/' php/php.ini \
     \
     # forward request and error logs to docker log collector
     && ln -sf /dev/stderr /var/log/php/error.log \
