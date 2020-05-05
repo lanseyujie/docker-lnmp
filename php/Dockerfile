@@ -29,7 +29,6 @@ ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 RUN set -eux \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.huaweicloud.com/g' /etc/apk/repositories \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
     && mkdir -p /usr/src/php \
     && cd /usr/src/php \
@@ -67,7 +66,7 @@ RUN set -eux \
         libxml2-dev \
         libzip-dev \
     && mkdir -p /usr/local/etc/php/conf.d /data/default /var/log/php \
-    && chown www-data:www-data -R /usr/src/php /usr/local/etc/php /data/default /var/log/php \
+    && chown www-data:www-data -R /usr/local/etc/php /data /var/log/php \
     && cd /usr/src/php \
     && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
     && rm php.tar.gz \
@@ -132,7 +131,7 @@ RUN set -eux \
             | sort -u \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
-    && apk add --no-cache $runDeps \
+    && apk add --no-network --virtual .php-rundeps $runDeps \
     && apk del --no-network .build-deps
 
 RUN set -eux \
@@ -146,7 +145,7 @@ RUN set -eux \
     && sed -i 's/;daemonize = yes/daemonize = no/' php-fpm.conf \
     \
     # www.conf
-    && cp php-fpm.d/www.conf.default php-fpm.d/www.conf \
+    && cp -v php-fpm.d/www.conf.default php-fpm.d/www.conf \
     && sed -i 's/listen = 127.0.0.1:9000/listen = 9000/' php-fpm.d/www.conf \
     && sed -i 's/pm.max_children = 5/pm.max_children = 20/' php-fpm.d/www.conf \
     && sed -i 's/pm.start_servers = 2/pm.start_servers = 10/' php-fpm.d/www.conf \
