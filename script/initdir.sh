@@ -8,27 +8,21 @@ if [ "${1#--}" = "rm" ]; then
     sudo rm -rf ../data/
 fi
 
-mkdir -p data/wwwlogs data/wwwdata data/wwwroot
+mkdir -p data/logs data/mysql data/redis data/wwwroot/default
 
-# wwwlogs
-mkdir -p data/wwwlogs/mysql data/wwwlogs/redis data/wwwlogs/php data/wwwlogs/nginx
+# logs
+mkdir -p data/logs/mysql data/logs/redis data/logs/php data/logs/nginx
 # Mysql
-touch data/wwwlogs/mysql/error.log
+touch data/logs/mysql/error.log
 # Redis
-touch data/wwwlogs/redis/redis.log
+touch data/logs/redis/redis.log
 # Php
-touch data/wwwlogs/php/access.log
-touch data/wwwlogs/php/error.log
-touch data/wwwlogs/php/slow.log
+touch data/logs/php/access.log
+touch data/logs/php/error.log
+touch data/logs/php/slow.log
 # Nginx
-touch data/wwwlogs/nginx/access.log
-touch data/wwwlogs/nginx/error.log
-
-# wwwdata
-mkdir -p data/wwwdata/mysql data/wwwdata/redis
-
-# wwwroot
-mkdir -p data/wwwroot/default
+touch data/logs/nginx/access.log
+touch data/logs/nginx/error.log
 
 # test
 echo '<?php phpinfo();' > data/wwwroot/default/index.php
