@@ -1,7 +1,7 @@
 #!/bin/sh
 set -xe
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 
 # Clean
 if [ "${1#--}" = "rm" ]; then

@@ -1,43 +1,5 @@
 version: '3'
 services:
-  nginx:
-    build: ./nginx
-    image: docker-lnmp-nginx:latest
-    depends_on:
-      - php
-    ports:
-      - "80:80"
-      - "443:443"
-    networks:
-      - frontend
-    volumes:
-      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
-      - ./nginx/ssl/:/etc/nginx/ssl/:ro
-      - ./data/wwwlogs/nginx/:/var/log/nginx/:rw
-      - ./data/wwwroot/:/data/:rw
-    restart: always
-    container_name: nginx
-
-  php:
-    build: ./php
-    image: docker-lnmp-php:latest
-    depends_on:
-      - mariadb
-      - redis
-    ports:
-      - "9000"
-    networks:
-      - frontend
-      - backend
-    volumes:
-      - ./php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
-      - ./php/conf.d/:/usr/local/etc/php-fpm.d/:ro
-      - ./php/php.ini:/usr/local/etc/php.ini:ro
-      - ./data/wwwlogs/php/:/var/log/php/:rw
-      - ./data/wwwroot/:/data/:rw
-    restart: always
-    container_name: php
-
   # https://docs.docker.com/samples/library/mariadb/
   mariadb:
     build: ./mariadb
@@ -48,9 +10,9 @@ services:
       - backend
     volumes:
       - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
-      - ./mariadb/initdb.d/:/docker-entrypoint-initdb.d/:ro
-      - ./data/wwwlogs/mysql/:/var/log/mysql/:rw
-      - ./data/wwwdata/mysql/:/data/:rw
+      - ./mariadb/import/:/import/:ro
+      - ./data/logs/mysql/:/var/log/mysql/:rw
+      - ./data/mysql/:/data/:rw
     environment:
       MYSQL_DATABASE: www
       MYSQL_USER: www
@@ -67,13 +29,52 @@ services:
     networks:
       - backend
     volumes:
-      - ./redis/redis.conf:/tmp/redis.conf:ro
-      - ./data/wwwlogs/redis/:/var/log/redis/:rw
-      - ./data/wwwdata/redis/:/data/:rw
+      - ./redis/redis.conf:/etc/redis.conf:rw
+      - ./data/logs/redis/:/var/log/redis/:rw
+      - ./data/redis/:/data/:rw
     environment:
       REDIS_PASSWORD: 123456
     restart: always
     container_name: redis
+
+  php:
+    build: ./php
+    image: docker-lnmp-php:latest
+    depends_on:
+      - mariadb
+      - redis
+    ports:
+      - "9000"
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - ./php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
+      - ./php/php-fpm.d/:/usr/local/etc/php-fpm.d/:ro
+      - ./php/php/php.ini-production:/usr/local/etc/php/php.ini:ro
+      - ./php/php/conf.d/:/usr/local/etc/php/conf.d/:ro
+      - ./data/logs/php/:/var/log/php/:rw
+      - ./data/wwwroot/:/data/:rw
+    restart: always
+    container_name: php
+
+  nginx:
+    build: ./nginx
+    image: docker-lnmp-nginx:latest
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - ./nginx/ssl/:/etc/nginx/ssl/:ro
+      - ./data/logs/nginx/:/var/log/nginx/:rw
+      - ./data/wwwroot/:/data/:rw
+    restart: always
+    container_name: nginx
 
 networks:
   frontend:
