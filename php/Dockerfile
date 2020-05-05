@@ -32,8 +32,8 @@ RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
     && mkdir -p /usr/src/php \
     && cd /usr/src/php \
-    && curl -fsSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
-    && curl -fsSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
+    && curl -fSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
+    && curl -fSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
     && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
     && for key in $GPG_KEYS; do \
@@ -66,7 +66,6 @@ RUN set -eux \
         libxml2-dev \
         libzip-dev \
     && mkdir -p /usr/local/etc/php/conf.d /data/default /var/log/php \
-    && chown www-data:www-data -R /usr/local/etc/php /data /var/log/php \
     && cd /usr/src/php \
     && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
     && rm php.tar.gz \
@@ -132,7 +131,8 @@ RUN set -eux \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
     && apk add --no-network --virtual .php-rundeps $runDeps \
-    && apk del --no-network .build-deps
+    && apk del --no-network .build-deps \
+    && chown www-data:www-data -R /usr/local/etc/php /data /var/log/php
 
 RUN set -eux \
     cd /usr/local/etc \

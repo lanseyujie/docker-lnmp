@@ -9,7 +9,7 @@ RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
     && mkdir -p /usr/src/redis \
     && cd /usr/src/redis \
-    && curl -fsSL -o redis.tar.gz http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
+    && curl -fSL -o redis.tar.gz http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
     && echo "$SHA256SUM *redis.tar.gz" | sha256sum -c - \
     && apk del --no-network .fetch-deps
 
@@ -27,7 +27,6 @@ RUN set -eux \
         musl-dev \
         openssl-dev \
     && mkdir -p /data /var/log/redis \
-    && chown redis:redis -R /data /var/log/redis \
     && cd /usr/src/redis \
     && tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \
     && rm redis.tar.gz \
@@ -57,7 +56,8 @@ RUN set -eux \
     )" \
     && apk add --no-network --virtual .redis-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && apk add --no-cache pwgen
+    && apk add --no-cache pwgen \
+    && chown redis:redis -R /data /var/log/redis
 
 RUN set -eux \
     && sed -i 's/^bind 127.0.0.1$/bind 0.0.0.0/' /etc/redis.conf \
