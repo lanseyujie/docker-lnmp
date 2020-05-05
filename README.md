@@ -1,6 +1,6 @@
 # docker-lnmp
 
-[![Build Status](https://travis-ci.org/lanseyujie/docker-lnmp.svg?branch=master)](https://travis-ci.org/lanseyujie/docker-lnmp)
+![Publish Docker LNMP Image](https://github.com/lanseyujie/docker-lnmp/workflows/Publish%20Docker%20LNMP%20Image/badge.svg)
 
 ## Get Docker
 
