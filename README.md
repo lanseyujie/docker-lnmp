@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lanseyujie/docker-lnmp.svg?branch=master)](https://travis-ci.org/lanseyujie/docker-lnmp)
 
-## Docker
+## Get Docker
 
 [Get Docker Engine - Community for Debian](https://docs.docker.com/install/linux/docker-ce/debian/ "Get Docker Engine - Community for Debian")
 
@@ -28,13 +28,15 @@ uid           [ unknown] Docker Release (CE deb) <docker@docker.com>
 sub   rsa4096 2017-02-22 [S]
 
 # set up the stable repository
+# for debian
 $ echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+# for ubuntu
+$ echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
 # install docker engine - community
 $ sudo apt update && sudo apt install docker-ce -y
 
 # use docker without sudo, need to reload shell in order to have new group settings applied
-$ sudo groupadd docker
 $ sudo usermod -aG docker $USER
 
 # install docker-compose
