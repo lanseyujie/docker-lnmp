@@ -7,13 +7,17 @@ on:
   release:
     types:
       - published
+  watch:
+    types:
+      - started
 
 jobs:
   build:
     name: Build LNMP
+    if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-latest
     env:
-      REGISTRY_URL: ${{ secrets.REGISTRY }}/${{ secrets.NAMESPACE }}/
+      REGISTRY_URL: ${{ secrets.REGISTRY }}/${{ secrets.NAMESPACE }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@master
@@ -28,7 +32,7 @@ jobs:
           IMAGE_NAME=docker-lnmp-redis
           cd redis
           docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-          docker tag $IMAGE_NAME:latest "$REGISTRY_URL/$IMAGE_NAME:latest"
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
           docker push "$REGISTRY_URL/$IMAGE_NAME:latest"
 
       - name: Build MariaDB Image
@@ -36,7 +40,7 @@ jobs:
           IMAGE_NAME=docker-lnmp-mariadb
           cd mariadb
           docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-          docker tag $IMAGE_NAME:latest "$REGISTRY_URL/$IMAGE_NAME:latest"
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
           docker push "$REGISTRY_URL/$IMAGE_NAME:latest"
 
       - name: Build PHP Image
@@ -44,7 +48,7 @@ jobs:
           IMAGE_NAME=docker-lnmp-php
           cd php
           docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-          docker tag $IMAGE_NAME:latest "$REGISTRY_URL/$IMAGE_NAME:latest"
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
           docker push "$REGISTRY_URL/$IMAGE_NAME:latest"
 
       - name: Build Nginx Image
@@ -52,5 +56,5 @@ jobs:
           IMAGE_NAME=docker-lnmp-nginx
           cd nginx
           docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-          docker tag $IMAGE_NAME:latest "$REGISTRY_URL/$IMAGE_NAME:latest"
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
           docker push "$REGISTRY_URL/$IMAGE_NAME:latest"
