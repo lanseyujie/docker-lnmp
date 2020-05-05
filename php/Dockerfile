@@ -135,7 +135,7 @@ RUN set -eux \
     && chown www-data:www-data -R /usr/local/etc/php /data /var/log/php
 
 RUN set -eux \
-    cd /usr/local/etc \
+    && cd /usr/local/etc \
     \
     # for some reason, upstream's php-fpm.conf.default has "include=NONE/etc/php-fpm.d/*.conf"
     && sed 's!=NONE/!=!g' php-fpm.conf.default | tee php-fpm.conf > /dev/null \
