@@ -6,24 +6,25 @@ chown -R redis:redis /data /var/log/redis
 # first arg is `-f` or `--some-option`
 # or first arg is `something.conf`
 if [ "${1#-}" != "$1" ] || [ "${1%.conf}" != "$1" ]; then
-	set -- redis-server "$@"
+    set -- redis-server "$@"
 fi
 
 if [ "$1" = 'redis-server' ]; then
     # first boot
-	if [ ! -f /data/dump.rdb ]; then
-		if [ -f /tmp/redis.conf ]; then
-			cp -f /tmp/redis.conf /etc/redis.conf
-		fi
+    if [ ! -f /data/dump.rdb ]; then
+        if [ -z "$REDIS_PASSWORD" ]; then
+            REDIS_PASSWORD="$(pwgen 16 1)"
+            echo "[INFO] Generated Redis Password: $REDIS_PASSWORD"
+        fi
+        # do not use of -i in sed to save change
+        sed "s/^# requirepass foobared$/requirepass $REDIS_PASSWORD/" /etc/redis.conf > /tmp/redis.conf
+        cat /tmp/redis.conf > /etc/redis.conf
+        rm /tmp/redis.conf
+    fi
 
-		if [ ! -z "$REDIS_PASSWORD" ]; then
-			sed -i "s/^# requirepass.*$/requirepass $REDIS_PASSWORD/g" /etc/redis.conf
-		fi
-	fi
-
-	if [ "$(id -u)" = '0' ]; then
-		set -- su-exec redis "$@"
-	fi
+    if [ "$(id -u)" = '0' ]; then
+        set -- su-exec redis "$@"
+    fi
 fi
 
 exec "$@"

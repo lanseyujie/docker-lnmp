@@ -2,10 +2,18 @@ FROM alpine:3.11
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 5.0.7
+ENV REDIS_VERSION 6.0.1
+ENV SHA256SUM b8756e430479edc162ba9c44dc89ac394316cd482f2dc6b91bcd5fe12593f273
 
-RUN set -ex \
-    && SHA256SUM=61db74eabf6801f057fd24b590232f2f337d422280fd19486eca03be87d3a82b \
+RUN set -eux \
+    && apk add --no-cache --virtual .fetch-deps curl \
+    && mkdir -p /usr/src/redis \
+    && cd /usr/src/redis \
+    && curl -fsSL -o redis.tar.gz http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
+    && echo "$SHA256SUM *redis.tar.gz" | sha256sum -c - \
+    && apk del --no-network .fetch-deps
+
+RUN set -eux \
     && addgroup -g 82 -S redis \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
     \
@@ -17,39 +25,47 @@ RUN set -ex \
         linux-headers \
         make \
         musl-dev \
-        curl \
-    && curl -fSL http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz -o redis.tar.gz \
-    && echo "$SHA256SUM *redis.tar.gz" | sha256sum -c - \
-    && mkdir -p /usr/src/redis /data /var/log/redis \
+        openssl-dev \
+    && mkdir -p /data /var/log/redis \
     && chown redis:redis -R /data /var/log/redis \
+    && cd /usr/src/redis \
     && tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \
     && rm redis.tar.gz \
     \
     # disable Redis protected mode [1] as it is unnecessary in context of Docker
     # (ports are not automatically exposed when running inside Docker, but rather explicitly by specifying -p / -P)
     # [1]: https://github.com/antirez/redis/commit/edd4d555df57dc84265fdfb4ef59a4678832f6da
-    && grep -q '^#define CONFIG_DEFAULT_PROTECTED_MODE 1$' /usr/src/redis/src/server.h \
-    && sed -ri 's!^(#define CONFIG_DEFAULT_PROTECTED_MODE) 1$!\1 0!' /usr/src/redis/src/server.h \
-    && grep -q '^#define CONFIG_DEFAULT_PROTECTED_MODE 0$' /usr/src/redis/src/server.h \
-    \
+	&& grep -E '^ *createBoolConfig[(]"protected-mode",.*, *1 *,.*[)],$' /usr/src/redis/src/config.c \
+	&& sed -ri 's!^( *createBoolConfig[(]"protected-mode",.*, *)1( *,.*[)],)$!\10\2!' /usr/src/redis/src/config.c \
+	&& grep -E '^ *createBoolConfig[(]"protected-mode",.*, *0 *,.*[)],$' /usr/src/redis/src/config.c \
     # for future reference, we modify this directly in the source instead of just supplying a default configuration flag because apparently "if you specify any argument to redis-server, [it assumes] you are going to specify everything"
     # see also https://github.com/docker-library/redis/issues/4#issuecomment-50780840
     # (more exactly, this makes sure the default behavior of "save on SIGTERM" stays functional by default)
-    && make -C /usr/src/redis -j$(nproc) \
+    \
+    && export BUILD_TLS=yes \
+    && make -C /usr/src/redis -j$(nproc) all \
     && make -C /usr/src/redis install \
     && strip /usr/local/bin/redis* \
+    && cp -v redis.conf /etc \
     && rm -r /usr/src/redis \
+    && cd / \
     && runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
             | tr ',' '\n' \
             | sort -u \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
-    && apk add --virtual .redis-rundeps $runDeps \
-    && apk del .build-deps \
-    && redis-server --version
+    && apk add --no-network --virtual .redis-rundeps $runDeps \
+    && apk del --no-network .build-deps \
+    && apk add --no-cache pwgen
 
-COPY redis.conf /etc/redis.conf
+RUN set -eux \
+    && sed -i 's/^bind 127.0.0.1$/bind 0.0.0.0/' /etc/redis.conf \
+    && sed -i 's/^logfile ""$/logfile \/var\/log\/redis\/redis.log/' /etc/redis.conf \
+    && sed -i 's/^dir .\/$/dir \/data/' /etc/redis.conf \
+    && sed -i 's/^# maxmemory <bytes>$/maxmemory 256MB/' /etc/redis.conf \
+    && redis-server --version \
+    && redis-cli --version
 
 COPY docker-entrypoint /usr/local/bin/
 
