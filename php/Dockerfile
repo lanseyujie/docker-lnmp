@@ -30,10 +30,12 @@ ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
-    && mkdir -p /usr/src/php \
+    && mkdir -p /usr/src/php \http://share.static.lanseyujie.com/mirror/php-7.4.5.tar.gz
     && cd /usr/src/php \
-    && curl -fSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
-    && curl -fSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
+    # && curl -fSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
+    && curl -fSL -o php.tar.gz http://share.static.lanseyujie.com/mirror/php-$PHP_VERSION.tar.gz \
+    # && curl -fSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
+    && curl -fSL -o php.tar.gz.asc http://share.static.lanseyujie.com/mirror/php-$PHP_VERSION.tar.gz.asc \
     && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
     && for key in $GPG_KEYS; do \
