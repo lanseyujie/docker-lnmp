@@ -18,7 +18,7 @@ RUN set -eux \
     && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
     \
     # grab su-exec for easy step-down from root
-    && apk add --no-cache 'su-exec>=0.2' \
+    && apk add --no-cache 'su-exec>=0.2' pwgen \
     && apk add --no-cache --virtual .build-deps \
         coreutils \
         gcc \
@@ -56,7 +56,6 @@ RUN set -eux \
     )" \
     && apk add --no-network --virtual .redis-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && apk add --no-cache pwgen \
     && chown redis:redis -R /data /var/log/redis
 
 RUN set -eux \
