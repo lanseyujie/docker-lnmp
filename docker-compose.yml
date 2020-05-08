@@ -1,6 +1,5 @@
 version: '3'
 services:
-  # https://docs.docker.com/samples/library/mariadb/
   mariadb:
     build: ./mariadb
     image: docker-lnmp-mariadb:latest
@@ -10,7 +9,7 @@ services:
       - backend
     volumes:
       - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
-      - ./mariadb/import/:/import/:ro
+      - ./mariadb/initdb.d/:/initdb.d/:ro
       - ./data/logs/mysql/:/var/log/mysql/:rw
       - ./data/mysql/:/data/:rw
     environment:
@@ -18,6 +17,7 @@ services:
       MYSQL_USER: www
       MYSQL_PASSWORD: 123456
       MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: %
     restart: always
     container_name: mariadb
 
