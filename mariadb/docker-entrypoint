@@ -1,110 +1,215 @@
 #!/bin/sh
 set -e
 
-chown mysql:mysql -R /data /var/log/mysql
+mysql_note() {
+    printf '%s [%s] [ENTRYPOINT]: %s\n' "$(date +'%Y-%m-%d %X %z')" "Note" "$*"
+}
 
-# first arg is `-f` or `--some-option`
-if [ "${1#-}" != "$1" ]; then
-    set -- mysqld "$@"
-fi
+mysql_warn() {
+    printf '%s [%s] [ENTRYPOINT]: %s\n' "$(date +'%Y-%m-%d %X %z')" "Waning" "$*" >&2
+}
 
-if [ "$1" = "mysqld" ]; then
-    DATADIR=/data
+mysql_error() {
+    printf '%s [%s] [ENTRYPOINT]: %s\n' "$(date +'%Y-%m-%d %X %z')" "Error" "$*" >&2
+    exit 1
+}
 
-    if [ -d "$DATADIR/mysql" ]; then
-        echo "[INFO] MySQL directory already present, skipping creation"
+# Execute sql script, passed via stdin
+# usage: sql_exec [--dont-use-mysql-password] [mysql-cli-args]
+#    ie: echo 'SELECT 1' | sql_exec --database=mysql
+#    ie: sql_exec --dont-use-mysql-root-password --database=mydb <my-file.sql
+sql_exec() {
+    user="--user=mysql"
+    password=''
+    if [ '--dont-use-mysql-password' = "$1" ]; then
+        shift
     else
-        echo "[INFO] MySQL data directory not found, creating initial DBs"
+        user="--user=root"
+        password="--password=$MYSQL_ROOT_PASSWORD"
+    fi
 
-        mysql_install_db --user=mysql --datadir="$DATADIR"
+    mysql --protocol=socket --socket=/run/mysqld/mysqld.sock --host=localhost "$user" "$password" "$@"
+}
 
-        "$@" --skip-networking --socket=/var/run/mysqld/mysqld.sock &
-        pid="$!"
+# Do a temporary startup of the MySQL server, for init purposes
+docker_temp_server_start() {
+    mysql_note "Starting temporary server"
+    "$@" --skip-networking --socket=/run/mysqld/mysqld.sock &
 
-        mysql="mysql -hlocalhost -uroot --protocol=socket --socket=/var/run/mysqld/mysqld.sock"
+    mysql_note "Waiting for server startup"
+    for i in {30..0}; do
+        if echo 'SELECT 1' | sql_exec --database=mysql &>/dev/null; then
+            break
+        fi
+        sleep 1
+    done
 
-        for i in {30..0}; do
-            if echo 'SELECT 1' | $mysql &>/dev/null; then
-                break
+    if [ "$i" = 0 ]; then
+        mysql_error "Unable to start server."
+    fi
+
+    mysql_note "Temporary server started."
+}
+
+# Stop the server. When using a local socket file mysqladmin will block until
+# the shutdown is complete.
+docker_temp_server_stop() {
+    mysql_note "Stopping temporary server"
+    if ! mysqladmin shutdown --socket=/run/mysqld/mysqld.sock --user=root --password="$MYSQL_ROOT_PASSWORD"; then
+        mysql_error "Unable to shutdown server."
+    fi
+    mysql_note "Temporary server stopped"
+}
+
+# usage: docker_init_script [file [file [...]]]
+#    ie: docker_init_script /initdb.d/*
+# process initializer files, based on file extensions
+docker_init_script() {
+    for f; do
+        case "$f" in
+        *.sql)
+            echo "$0: import $f"
+            sql_exec <"$f"
+            ;;
+        *.sql.gz)
+            echo "$0: import $f"
+            gunzip -c "$f" | sql_exec
+            ;;
+        *.sql.xz)
+            mysql_note "$0: running $f"
+            xzcat "$f" | sql_exec
+            ;;
+        *.sh)
+            # https://github.com/docker-library/postgres/issues/450#issuecomment-393167936
+            # https://github.com/docker-library/postgres/pull/452
+            if [ -x "$f" ]; then
+                echo "$0: running $f"
+                "$f"
+            else
+                echo "$0: sourcing $f"
+                . "$f"
             fi
-            echo '[INFO] MySQL init process in progress...'
-            sleep 1
-        done
+            ;;
+        *)
+            echo "$0: ignoring $f"
+            ;;
+        esac
+    done
+}
 
-        if [ "$i" = 0 ]; then
-            echo >&2 '[ERROR] MySQL init process failed.'
-            exit 1
-        fi
+# initializes the database directory
+docker_init_dir() {
+    # Two all-privilege accounts were created.
+    # One is root@localhost, it has no password, but you need to
+    # be system 'root' user to connect. Use, for example, sudo mysql
+    # The second is mysql@localhost, it has no password either, but
+    # you need to be the system 'mysql' user to connect.
+    # After connecting you can set the password, if you would need to be
+    # able to connect as any of these users with a password and without sudo
+    mysql_note "Initializing database files"
+    mysql_install_db --user=mysql --datadir=/data --rpm
+    mysql_note "Database files initialized"
+}
 
-        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-            MYSQL_ROOT_PASSWORD="$(pwgen 16 1)"
-            echo "[INFO] Generated MySQL root Password: $MYSQL_ROOT_PASSWORD"
-        fi
+docker_setup_db() {
+    # Generate random root password
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+        export MYSQL_ROOT_PASSWORD="$(pwgen 32 1)"
+        mysql_note "Generated root password: ${MYSQL_ROOT_PASSWORD}"
+    fi
 
-        $mysql <<-EOF
-    USE mysql;
-    DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost');
-    SET PASSWORD FOR 'root'@'localhost'=PASSWORD('$MYSQL_ROOT_PASSWORD');
-    GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
-    CREATE USER 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
-    GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION;
-    DROP DATABASE IF EXISTS test;
-    FLUSH PRIVILEGES;
-EOF
-        if [ -n "$MYSQL_ROOT_PASSWORD" ]; then
-            mysql="$mysql -p$MYSQL_ROOT_PASSWORD"
-        fi
+    # tell sql_exec to use mysql user without password since it is just now being set
+    sql_exec --dont-use-mysql-password --database=mysql <<-EOSQL
+		-- What's done in this file shouldn't be replicated
+		--  or products like mysql-fabric won't work
+		SET @@SESSION.SQL_LOG_BIN=0;
+		DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;
+		SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}') ;
+		-- 10.1: https://github.com/MariaDB/server/blob/d925aec1c10cebf6c34825a7de50afe4e630aff4/scripts/mysql_secure_installation.sh#L347-L365
+		-- 10.5: https://github.com/MariaDB/server/blob/00c3a28820c67c37ebbca72691f4897b57f2eed5/scripts/mysql_secure_installation.sh#L351-L369
+		DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%' ;
+		GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
+		FLUSH PRIVILEGES ;
+		DROP DATABASE IF EXISTS test ;
+	EOSQL
 
-        MYSQL_DATABASE=${MYSQL_DATABASE:-""}
-        MYSQL_USER=${MYSQL_USER:-""}
-        MYSQL_PASSWORD=${MYSQL_PASSWORD:-$(pwgen 16 1)}
+    MYSQL_ROOT_HOST=${MYSQL_ROOT_HOST:-"%"}
+    # Sets root password and creates root users for non-localhost hosts
+    # default root to listen for connections from anywhere
+    if [ -n "$MYSQL_ROOT_HOST" ] && [ "$MYSQL_ROOT_HOST" != 'localhost' ]; then
+        mysql_note "Create root user with host ${MYSQL_ROOT_HOST}"
+        sql_exec --database=mysql <<-EOSQL
+			CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;
+		EOSQL
+    fi
+
+    MYSQL_DATABASE=${MYSQL_DATABASE:-""}
+    MYSQL_USER=${MYSQL_USER:-""}
+    MYSQL_PASSWORD=${MYSQL_PASSWORD:-$(pwgen 32 1)}
+
+    # Creates a custom database and user if specified
+    if [ -n "$MYSQL_DATABASE" ]; then
+        mysql_note "Create database: ${MYSQL_DATABASE}"
+        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | sql_exec --database=mysql
+    fi
+
+    if [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
+        mysql_note "Create user ${MYSQL_USER} with password ${MYSQL_PASSWORD}"
+        echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | sql_exec --database=mysql
 
         if [ -n "$MYSQL_DATABASE" ]; then
-            echo "[INFO] Create database: $MYSQL_DATABASE"
-            echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;" | $mysql
-            mysql="$mysql $MYSQL_DATABASE"
+            mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE}"
+            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | sql_exec --database=mysql
         fi
 
-        if [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
-            echo "[INFO] Create user $MYSQL_USER with password $MYSQL_PASSWORD"
-            echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | $mysql
-
-            if [ -n "$MYSQL_DATABASE" ]; then
-                echo "[INFO] Grant user $MYSQL_USER all permissions to database $MYSQL_DATABASE"
-                echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | $mysql
-            fi
-        fi
-
-        if [ -d "/import" ]; then
-            for f in /import/*; do
-                case "$f" in
-                *.sql)
-                    echo "$0: import $f"
-                    $mysql <"$f"
-                    echo
-                    ;;
-                *.sql.gz)
-                    echo "$0: import $f"
-                    gunzip -c "$f" | $mysql
-                    echo
-                    ;;
-                *)
-                    echo "$0: ignoring $f"
-                    echo
-                    ;;
-                esac
-            done
-        fi
-
-        if ! kill -s TERM "$pid" || ! wait "$pid"; then
-            echo >&2 '[ERROR] MySQL init process failed.'
-            exit 1
-        fi
-
-        echo
-        echo '[INFO] MySQL init process done. Ready for start up.'
-        echo
+        echo "FLUSH PRIVILEGES ;" | sql_exec --database=mysql
     fi
-fi
+}
 
-exec "$@"
+_main() {
+    # if command starts with an option, prepend mysqld
+    if [ "${1:0:1}" = '-' ]; then
+        set -- mysqld "$@"
+    fi
+
+    # skip setup if they aren't running mysqld or want an option that stops mysqld
+    if [ "$1" = 'mysqld' ]; then
+        mysql_note "Entrypoint script for MySQL Server ${MARIADB_VERSION} started."
+
+        # creates folders for the database
+        mkdir -p /data
+
+        # If container is started as root user, restart as dedicated mysql user
+        if [ "$(id -u)" = '0' ]; then
+            # ensures permission for user mysql of run as root
+            # this will cause less disk access than `chown -R`
+            find /data \! -user mysql -exec chown mysql:mysql '{}' +
+            mysql_note "Switching to dedicated user 'mysql'"
+            exec su-exec mysql "$0" "$@"
+        fi
+
+        # there's no database, so it needs to be initialized
+        if [ ! -d "data/mysql" ]; then
+            # check dir permissions to reduce likelihood of half-initialized database
+            ls /initdb.d/ >/dev/null
+
+            # make sure datadir is configured in my.cnf, otherwise mysqld will still start with the default datadir
+            docker_init_dir "$@"
+
+            docker_temp_server_start "$@"
+
+            docker_setup_db
+
+            docker_init_script /initdb.d/*
+
+            docker_temp_server_stop
+
+            mysql_note "MySQL init process done. Ready for start up."
+        fi
+    fi
+
+    exec "$@"
+}
+
+_main "$@"
