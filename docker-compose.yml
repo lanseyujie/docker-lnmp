@@ -17,7 +17,7 @@ services:
       MYSQL_USER: www
       MYSQL_PASSWORD: 123456
       MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_ROOT_HOST: %
+      MYSQL_ROOT_HOST: "%"
     restart: always
     container_name: mariadb
 
