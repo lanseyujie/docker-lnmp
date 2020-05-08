@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -xe
 
 cd "$(dirname "$0")"
@@ -8,10 +8,11 @@ if [ "${1#--}" = "rm" ]; then
     sudo rm -rf ../data/
 fi
 
-mkdir -p data/logs data/mysql data/redis data/wwwroot/default
+# data
+mkdir -p data/{mysql,redis,wwwroot/default}
 
 # logs
-mkdir -p data/logs/mysql data/logs/redis data/logs/php data/logs/nginx
+mkdir -p data/logs/{mysql,redis,php,nginx}
 # Mysql
 touch data/logs/mysql/error.log
 # Redis
@@ -25,9 +26,9 @@ touch data/logs/nginx/access.log
 touch data/logs/nginx/error.log
 
 # test
-echo '<?php phpinfo();' > data/wwwroot/default/index.php
-echo 'Hello World' > data/wwwroot/default/index.html
+echo '<?php phpinfo();' >data/wwwroot/default/index.php
+echo 'Hello World' >data/wwwroot/default/index.html
 
-sudo chown $USER:$USER -R data/
+sudo chown "$USER":"$USER" -R data/
 
 mv data/ ../
