@@ -196,7 +196,7 @@ _main() {
         fi
 
         # there's no database, so it needs to be initialized
-        if [ ! -d "data/mysql" ]; then
+        if [ ! -d "/data/mysql" ]; then
             # check dir permissions to reduce likelihood of half-initialized database
             ls /initdb.d/ >/dev/null
 
