@@ -5,7 +5,7 @@ user=root
 password=123456
 database=""
 
-set -- `getopt -o u:p:d: --long user:,password:,database: -- "$@"`
+set -- $(getopt --unquoted --options u:p:d: --long user:,password:,database: -- "$@")
 
 while [ -n "$1" ]
 do
