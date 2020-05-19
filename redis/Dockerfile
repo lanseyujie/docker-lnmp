@@ -2,8 +2,8 @@ FROM alpine:3.11
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 6.0.1
-ENV SHA256SUM b8756e430479edc162ba9c44dc89ac394316cd482f2dc6b91bcd5fe12593f273
+ENV REDIS_VERSION 6.0.3
+ENV SHA256SUM bca46dce81fe92f7b2de4cf8ae41fbc4b94fbd5674def7f12c87e7f9165cbb3a
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
