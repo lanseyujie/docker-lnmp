@@ -16,7 +16,9 @@ RUN set -eux \
     && echo -e '[mysqld]\nport=3306\nsocket=/run/mysqld/mysqld.sock' >>/etc/my.cnf.d/mariadb-server.cnf \
     && echo -e 'pid-file=/run/mysqld/mysqld.pid\nlog_error=/var/log/mysql/error.log' >>/etc/my.cnf.d/mariadb-server.cnf \
     && echo -e 'user=mysql\nbasedir=/usr\ndatadir=/data\ntmpdir=/tmp' >>/etc/my.cnf.d/mariadb-server.cnf \
-    && echo -e 'skip-name-resolve\nbind-address=0.0.0.0' >>/etc/my.cnf.d/mariadb-server.cnf
+    && echo -e 'skip-name-resolve\nbind-address=0.0.0.0' >>/etc/my.cnf.d/mariadb-server.cnf \
+    && echo -e 'server-id=1\nlog-bin=/var/log/mysql/mysql-bin' >>/etc/my.cnf.d/mariadb-server.cnf \
+    && echo -e 'binlog_format=mixed\nexpire_logs_days=14' >>/etc/my.cnf.d/mariadb-server.cnf
 
 COPY docker-entrypoint /usr/local/bin/
 
