@@ -32,22 +32,32 @@ server {
   root /data/default;
   index index.html index.htm index.php;
 
-  # if ($ssl_protocol = "") {
-  #   return 301 https://$host$request_uri;
+  # if ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$) {
+  #   return 444;
   # }
 
-  # error_page 404 /404.html;
-  # error_page 500 /500.html;
-  # error_page 502 /502.html;
-  # error_page 504 /504.html;
+  # if ($query_string ~* ^http(.*)$) {
+  #  return 444;
+  # }
 
-  # note: HSTS (15768000 seconds = 6 months)
-  # add_header Strict-Transport-Security "max-age=15768001; preload";
+  # if ($scheme = "http") {
+  #   return 301 https://$server_name$request_uri;
+  # }
+
+  # note: HSTS (31536000 seconds = 12 months)
+  # add_header Strict-Transport-Security "max-age=31536000; preload";
   # add_header Cache-Control "no-cache, must-revalidate, max-age=60";
   # add_header X-Content-Type-Options nosniff;
   # add_header X-Frame-Options SAMEORIGIN;
   # add_header Content-Security-Policy "default-src 'self'; script-src 'unsafe-inline':; style-src 'unsafe-inline'; img-src data:; media-src *;"
   # fastcgi_hide_header X-Powered-By;
+
+  # error_page 404 /404.html;
+  # error_page 500 501 502 503 504 @errpage;
+  # location @errpage {
+  #   default_type text/html;
+  #   return 200 'Some Errors Occurred';
+  # }
 
   # location / {
   #   try_files $uri $uri/ /index.php$is_args$args;
