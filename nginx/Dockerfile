@@ -2,9 +2,9 @@ FROM alpine:3.12
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV NGINX_VERSION 1.17.10
+ENV NGINX_VERSION 1.19.2
 ENV GPG_KEYS B0F4253373F8F6F510D42178520A9993A1C052F8
-ENV SHA256SUM a9aa73f19c352a6b166d78e2a664bb3ef1295bbe6d3cc5aa7404bd4664ab4b83
+ENV SHA256SUM 7c1f7bb13e79433ee930c597d272a64bc6e30c356a48524f38fd34fa88d62473
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
