@@ -2,8 +2,8 @@ FROM alpine:3.12
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 6.0.3
-ENV SHA256SUM bca46dce81fe92f7b2de4cf8ae41fbc4b94fbd5674def7f12c87e7f9165cbb3a
+ENV REDIS_VERSION 6.0.6
+ENV SHA256SUM 12ad49b163af5ef39466e8d2f7d212a58172116e5b441eebecb4e6ca22363d94
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
@@ -45,7 +45,7 @@ RUN set -eux \
     && make -C /usr/src/redis -j$(nproc) all \
     && make -C /usr/src/redis install \
     && strip /usr/local/bin/redis* \
-    && cp -v redis.conf /etc \
+    && cp -v *.conf /etc \
     && rm -r /usr/src/redis \
     && cd / \
     && runDeps="$( \
