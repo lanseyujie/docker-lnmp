@@ -81,7 +81,6 @@ RUN set -eux \
         --with-config-file-path=/usr/local/etc/php \
         --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
         --with-libdir=/usr/lib \
-        --with-iconv-dir=/usr/include \
         --with-fpm-user=www-data \
         --with-fpm-group=www-data \
         --disable-cgi \
@@ -113,7 +112,6 @@ RUN set -eux \
         --with-pdo-mysql=mysqlnd \
         --with-sqlite3=/usr \
         --with-pdo-sqlite=/usr \
-        --with-xmlrpc \
         --with-xsl \
         --with-zlib \
         --with-zip \
