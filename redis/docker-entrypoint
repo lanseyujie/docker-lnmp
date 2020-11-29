@@ -13,7 +13,7 @@ if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
     # first boot
     if [ ! -f /data/dump.rdb ]; then
         if [ -z "$REDIS_PASSWORD" ]; then
-            REDIS_PASSWORD="$(pwgen 32 1)"
+            export REDIS_PASSWORD="$(pwgen 32 1)"
             echo "[INFO] Generated Redis Password: $REDIS_PASSWORD"
         fi
         # do not use of -i in sed to save change
