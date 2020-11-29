@@ -136,7 +136,7 @@ docker_setup_db() {
         DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%' ;
         GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
         -- fix [Warning] 'user' entry '@33d302b597b9' ignored in --skip-name-resolve mode.
-        DELETE FROM mysql.proxies_priv WHERE Host IS NOT 'localhost' ;
+        DELETE FROM mysql.proxies_priv WHERE Host!='localhost' ;
         FLUSH PRIVILEGES ;
         DROP DATABASE IF EXISTS test ;
 EOSQL
