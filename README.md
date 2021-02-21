@@ -2,73 +2,65 @@
 
 ![Publish Docker LNMP Image](https://github.com/lanseyujie/docker-lnmp/workflows/Publish%20Docker%20LNMP%20Image/badge.svg)
 
-## Get Docker
+## Install Docker
 
-[Get Docker Engine - Community for Debian](https://docs.docker.com/install/linux/docker-ce/debian/ "Get Docker Engine - Community for Debian")
+[Install Docker Engine on Debian](https://docs.docker.com/engine/install/debian/ "Install Docker Engine on Debian")
 
 ```bash
 # update the apt package index
-$ sudo apt update
+sudo apt update
 
 # uninstall old versions
-$ sudo apt remove docker docker-engine docker.io
+sudo apt remove docker docker-engine docker.io
 
 # install packages to allow apt to use a repository over HTTPS
-$ sudo apt install apt-transport-https ca-certificates curl gnupg2 -y
+sudo apt install apt-transport-https ca-certificates curl gnupg2 -y
 
 # add docker's official GPG key
-$ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-
-#  Verify that you now have the key with the fingerprint 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88
-$ sudo apt-key fingerprint 0EBFCD88
-
-pub   rsa4096 2017-02-22 [SCEA]
-      9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
-uid           [ unknown] Docker Release (CE deb) <docker@docker.com>
-sub   rsa4096 2017-02-22 [S]
+# apt-key(8) will last be available in Debian 11 and Ubuntu 22.04
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor > docker.gpg
+sudo install -o root -g root -m 644 docker.gpg /etc/apt/trusted.gpg.d/
 
 # set up the stable repository
 # for debian
-$ echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 # for ubuntu
-$ echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
 # install docker engine - community
-$ sudo apt update && sudo apt install docker-ce -y
+sudo apt update && sudo apt install docker-ce -y
 
 # use docker without sudo, need to reload shell in order to have new group settings applied
-$ sudo usermod -aG docker $USER
+sudo usermod -aG docker $USER
 
 # install docker-compose
-$ sudo curl -L https://github.com/docker/compose/releases/download/1.25.5/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-$ sudo chmod +x /usr/local/bin/docker-compose
+sudo curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ## Usage
 
 ```bash
 # Clone
-$ git clone https://github.com/lanseyujie/docker-lnmp.git
-
-$ cd docker-lnmp
+git clone https://github.com/lanseyujie/docker-lnmp.git && cd docker-lnmp
 
 # Build & Start
-$ docker-compose up -d
+docker-compose up -d
 
 # Stop & Remove
-$ docker-compose down
+docker-compose down
 
 # Start
-$ docker-compose start
+docker-compose start
 
 # Restart
-$ docker-compose restart
+docker-compose restart
 
 # Stop
-$ docker-compose stop
+docker-compose stop
 
 # Logs
-$ docker-compose logs
+docker-compose logs
 ```
 
 ## SSL Deploy
@@ -99,10 +91,10 @@ acme.sh --install-cert \
 
 ```bash
 # PHP Built-in HTTP Server
-$ docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
+docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
 
 # Auto Backup Database
-$ cd docker-lnmp && crontab -l | {
+cd docker-lnmp && crontab -l | {
     cat
     echo "0 3 * * * $(pwd)/script/autobak.sh -uroot -p123456 -dwww > /dev/null"
 } | crontab -
