@@ -2,45 +2,9 @@
 
 ![Publish Docker LNMP Image](https://github.com/lanseyujie/docker-lnmp/workflows/Publish%20Docker%20LNMP%20Image/badge.svg)
 
-## Install Docker
-
-[Install Docker Engine on Debian](https://docs.docker.com/engine/install/debian/ "Install Docker Engine on Debian")
-
-```bash
-# update the apt package index
-sudo apt update
-
-# uninstall old versions
-sudo apt remove docker docker-engine docker.io
-
-# install packages to allow apt to use a repository over HTTPS
-sudo apt install apt-transport-https ca-certificates curl gnupg2 -y
-
-# add docker's official GPG key
-# apt-key(8) will last be available in Debian 11 and Ubuntu 22.04
-curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor > docker.gpg
-sudo install -o root -g root -m 644 docker.gpg /etc/apt/trusted.gpg.d/
-
-# set up the stable repository
-# for debian
-echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
-# for ubuntu
-echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
-
-# install docker engine - community
-sudo apt update && sudo apt install docker-ce -y
-
-# use docker without sudo, need to reload shell in order to have new group settings applied
-sudo usermod -aG docker $USER
-
-# install docker-compose
-sudo curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
 ## Usage
 
-```bash
+```shell
 # Clone
 git clone https://github.com/lanseyujie/docker-lnmp.git && cd docker-lnmp
 
@@ -65,7 +29,7 @@ docker-compose logs
 
 ## SSL Deploy
 
-```bash
+```shell
 # install acme.sh
 curl https://get.acme.sh | sh
 
@@ -89,7 +53,7 @@ acme.sh --install-cert \
 
 ## Other
 
-```bash
+```shell
 # PHP Built-in HTTP Server
 docker run -it --rm -p 8080:8080 -v $(pwd):/data/ docker-lnmp-php:latest sh -c "php -S 0.0.0.0:8080 -t /data"
 
