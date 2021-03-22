@@ -1,10 +1,10 @@
-FROM alpine:3.12
+FROM alpine:3.13
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV PHP_VERSION 8.0.0
+ENV PHP_VERSION 8.0.3
 ENV GPG_KEYS 1729F83938DA44E27BA0F4D3DBDB397470D12172 BFDDD28642824F8118EF77909B67A5C12229118F
-ENV SHA256SUM 3ed7b48d64357d3e8fa9e828dbe7416228f84105b8290c2f9779cd66be31ea71
+ENV SHA256SUM e7ecfee901e0843377b64b2d8124132eae75bdb71a2675ba7c5c038d6592383d
 
 # dependencies required for running "phpize"
 ENV PHPIZE_DEPS \
@@ -32,13 +32,8 @@ RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
     && mkdir -p /usr/src/php \
     && cd /usr/src/php \
-    \
-    # fix github action can not access www.php.net
-    # && curl -fSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
-    && curl -fSL -o php.tar.gz http://share.static.lanseyujie.com/mirror/php-$PHP_VERSION.tar.gz \
-    \
-    # && curl -fSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
-    && curl -fSL -o php.tar.gz.asc http://share.static.lanseyujie.com/mirror/php-$PHP_VERSION.tar.gz.asc \
+    && curl -fSL -o php.tar.gz https://www.php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror \
+    && curl -fSL -o php.tar.gz.asc https://www.php.net/get/php-$PHP_VERSION.tar.gz.asc/from/this/mirror \
     && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
     && for key in $GPG_KEYS; do \
@@ -157,7 +152,6 @@ RUN set -eux \
     && sed -i 's/;pm.max_requests = 500/pm.max_requests = 1024/' php-fpm.d/www.conf \
     && sed -i 's/;access.log = log\/\$pool.access.log/access.log = \/var\/log\/php\/access.log/' php-fpm.d/www.conf \
     && sed -i 's/;slowlog = log\/\$pool.log.slow/slowlog = \/var\/log\/php\/slow.log/' php-fpm.d/www.conf \
-    && sed -i 's/;request_terminate_timeout = 0/request_terminate_timeout = 100/' php-fpm.d/www.conf \
     && sed -i 's/;catch_workers_output = yes/catch_workers_output = yes/' php-fpm.d/www.conf \
     && sed -i 's/;decorate_workers_output = no/decorate_workers_output = no/' php-fpm.d/www.conf \
     \
