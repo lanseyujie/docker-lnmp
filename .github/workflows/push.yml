@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+    paths:
+      - mariadb/*
+      - nginx/*
+      - php/*
+      - redis/*
   release:
     types:
       - published
