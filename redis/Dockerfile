@@ -1,9 +1,9 @@
-FROM alpine:3.12
+FROM alpine:3.13
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV REDIS_VERSION 6.0.6
-ENV SHA256SUM 12ad49b163af5ef39466e8d2f7d212a58172116e5b441eebecb4e6ca22363d94
+ENV REDIS_VERSION 6.2.1
+ENV SHA256SUM cd222505012cce20b25682fca931ec93bd21ae92cb4abfe742cf7b76aa907520
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
@@ -59,7 +59,7 @@ RUN set -eux \
     && chown redis:redis -R /data /var/log/redis
 
 RUN set -eux \
-    && sed -i 's/^bind 127.0.0.1$/bind 0.0.0.0/' /etc/redis.conf \
+    && sed -i 's/^bind 127.0.0.1 -::1$/bind * -::*/' /etc/redis.conf \
     && sed -i 's/^logfile ""$/logfile \/var\/log\/redis\/redis.log/' /etc/redis.conf \
     && sed -i 's/^dir .\/$/dir \/data/' /etc/redis.conf \
     && sed -i 's/^# maxmemory <bytes>$/maxmemory 256MB/' /etc/redis.conf \
