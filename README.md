@@ -40,14 +40,15 @@ export Ali_Secret="abcdefg"
 
 # issue a cert
 # see https://github.com/Neilpang/acme.sh/wiki/%E8%AF%B4%E6%98%8E
-acme.sh --issue --dns dns_ali -d example.com -d *.example.com
+export TLD=example.com
+acme.sh --issue --dns dns_ali -d "$TLD" -d "*.$TLD"
 
 # auto update
 acme.sh --install-cert \
-    -d example.com \
-    -d *.example.com \
-    --key-file $(pwd)/nginx/ssl/example.com.key \
-    --fullchain-file $(pwd)/nginx/ssl/example.com.cer \
+    -d "$TLD" \
+    -d "*.$TLD" \
+    --key-file "$(pwd)/nginx/ssl/$TLD.key" \
+    --fullchain-file "$(pwd)/nginx/ssl/$TLD.cer" \
     --reloadcmd "docker restart nginx"
 ```
 
