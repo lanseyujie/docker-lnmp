@@ -5,11 +5,10 @@ LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 ENV MARIADB_VERSION 10.5.8
 
 RUN set -eux \
-    && addgroup -g 82 -S mysql \
-    && adduser -u 82 -D -S -s /sbin/nologin -G mysql mysql \
-    && mkdir -p /etc/my.cnf.d/ /run/mysqld /var/log/mysql /data /initdb.d \
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data mysql \
+    && mkdir -p /etc/my.cnf.d /run/mysqld /var/log/mysql /data /initdb.d \
     && apk add --no-cache mariadb mariadb-client 'su-exec>=0.2' pwgen \
-    && chown mysql:mysql -R /etc/my.cnf.d/ /run/mysqld /var/log/mysql /data /initdb.d
+    && chown mysql:www-data -R /etc/my.cnf.d /run/mysqld /var/log/mysql /data /initdb.d
 
 RUN set -eux \
     && echo -e '[client]\nport=3306\nsocket=/run/mysqld/mysqld.sock\n' >/etc/my.cnf.d/mariadb-server.cnf \

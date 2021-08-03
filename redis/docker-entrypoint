@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-chown -R redis:redis /data /var/log/redis
+chown -R redis:www-data /data /var/log/redis
 
 # first arg is `-f` or `--some-option`
 # or first arg is `something.conf`

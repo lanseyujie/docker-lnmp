@@ -192,8 +192,8 @@ _main() {
         if [ "$(id -u)" = '0' ]; then
             # ensures permission for user mysql of run as root
             # this will cause less disk access than `chown -R`
-            find /data \! -user mysql -exec chown mysql:mysql '{}' +
-            find /var/log/mysql \! -user mysql -exec chown mysql:mysql '{}' +
+            find /data \! -user mysql -exec chown mysql:www-data '{}' +
+            find /var/log/mysql \! -user mysql -exec chown mysql:www-data '{}' +
             mysql_note "Switching to dedicated user 'mysql'"
             exec su-exec mysql "$0" "$@"
         fi

@@ -14,8 +14,7 @@ RUN set -eux \
     && apk del --no-network .fetch-deps
 
 RUN set -eux \
-    && addgroup -g 82 -S redis \
-    && adduser -u 82 -D -S -s /sbin/nologin -G redis redis \
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data redis \
     \
     # grab su-exec for easy step-down from root
     && apk add --no-cache 'su-exec>=0.2' pwgen \
@@ -56,7 +55,7 @@ RUN set -eux \
     )" \
     && apk add --no-network --virtual .redis-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && chown redis:redis -R /data /var/log/redis
+    && chown redis:www-data -R /data /var/log/redis
 
 RUN set -eux \
     && sed -i 's/^bind 127.0.0.1 -::1$/bind * -::*/' /etc/redis.conf \

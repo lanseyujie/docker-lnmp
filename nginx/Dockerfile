@@ -21,8 +21,7 @@ RUN set -eux \
     && apk del --no-network .fetch-deps
 
 RUN set -eux \
-    && addgroup -g 82 -S nginx \
-    && adduser -u 82 -D -S -s /sbin/nologin -G nginx nginx \
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data nginx \
     && apk add --no-cache --virtual .build-deps \
         gcc \
         make \
@@ -90,16 +89,16 @@ RUN set -eux \
     )" \
     && apk add --no-network --virtual .nginx-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && chown nginx:nginx -R /usr/lib/nginx /etc/nginx /data /var/cache/nginx /var/log/nginx
+    && chown nginx:www-data -R /usr/lib/nginx /etc/nginx /data /var/cache/nginx /var/log/nginx
 
 RUN set -eux \
     \
     # forward request and error logs to docker log collector
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
-COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
-COPY --chown=nginx:nginx conf.d/http/default.conf /etc/nginx/conf.d/http/default.conf
-COPY --chown=nginx:nginx conf.d/stream/default.conf /etc/nginx/conf.d/stream/default.conf
+COPY --chown=nginx:www-data nginx.conf /etc/nginx/nginx.conf
+COPY --chown=nginx:www-data conf.d/http/default.conf /etc/nginx/conf.d/http/default.conf
+COPY --chown=nginx:www-data conf.d/stream/default.conf /etc/nginx/conf.d/stream/default.conf
 
 WORKDIR /data
 
