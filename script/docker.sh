@@ -16,9 +16,7 @@ apt purge -y docker docker.io
 apt update && apt install -y curl gnupg2
 
 # add docker's official GPG key
-# apt-key(8) will last be available in Debian 11 and Ubuntu 22.04
-curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor >/tmp/docker.gpg
-install -o root -g root -m 644 docker.gpg /etc/apt/trusted.gpg.d/ && rm /tmp/docker.gpg
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/docker.gpg
 
 # set up the stable repository
 if [ "$(lsb_release -si)" = 'Ubuntu' ]; then
