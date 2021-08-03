@@ -78,7 +78,7 @@ RUN set -eux \
     && ./configure $CONFIG \
     && make -j$(nproc) \
     && make install \
-    && install -o nginx -g nginx -m 644 html/index.html /data/default \
+    && install -o nginx -g www-data -m 644 html/index.html /data/default \
     && strip /usr/sbin/nginx /usr/lib/nginx/modules/*.so \
     && rm -rf /etc/nginx/html /usr/src/nginx \
     && runDeps="$( \
