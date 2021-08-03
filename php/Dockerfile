@@ -37,7 +37,7 @@ RUN set -eux \
     && echo "$SHA256SUM *php.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
     && for key in $GPG_KEYS; do \
-        gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$key"; \
+        gpg --batch --keyserver keyserver.ubuntu.com --keyserver-options timeout=10 --recv-keys "$key"; \
     done \
     && gpg --batch --verify php.tar.gz.asc php.tar.gz \
     && gpgconf --kill all \

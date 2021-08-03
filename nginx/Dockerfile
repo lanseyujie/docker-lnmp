@@ -14,7 +14,7 @@ RUN set -eux \
     && curl -fSL -o nginx.tar.gz.asc https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc \
     && echo "$SHA256SUM *nginx.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" \
+    && gpg --batch --keyserver keyserver.ubuntu.com --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" \
     && gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
