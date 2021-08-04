@@ -2,9 +2,26 @@ FROM alpine:3.14
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
+
+ENV MIRROR dl-cdn.alpinelinux.org
+ENV TZ Asia/Shanghai
 ENV NGINX_VERSION 1.21.0
 ENV GPG_KEYS B0F4253373F8F6F510D42178520A9993A1C052F8
 ENV SHA256SUM fe192a4bac2bd3a769e8695cb9fe14a00e57eaceb919095347a83b5b2afc0771
+
+RUN set -eux \
+    \
+    # mirror
+    && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
+    \
+    # timezone
+    && apk add --no-cache --virtual .timezone-deps tzdata \
+    && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && apk del --no-network .timezone-deps \
+    \
+    # add user
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data nginx
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
@@ -21,7 +38,6 @@ RUN set -eux \
     && apk del --no-network .fetch-deps
 
 RUN set -eux \
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data nginx \
     && apk add --no-cache --virtual .build-deps \
         gcc \
         make \

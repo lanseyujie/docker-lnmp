@@ -2,6 +2,8 @@ FROM alpine:3.14
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
+ENV MIRROR dl-cdn.alpinelinux.org
+ENV TZ Asia/Shanghai
 ENV PHP_VERSION 8.0.9
 ENV GPG_KEYS 1729F83938DA44E27BA0F4D3DBDB397470D12172 BFDDD28642824F8118EF77909B67A5C12229118F
 ENV SHA256SUM 1f0d72e90ab6ad0ae13329a96b281f71bc592563ce4e3a4c816b8da4b5854fb4
@@ -29,6 +31,20 @@ ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 RUN set -eux \
+    \
+    # timezone
+    && apk add --no-cache --virtual .timezone-deps tzdata \
+    && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && apk del --no-network .timezone-deps \
+    \
+    # mirror
+    && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
+    \
+    # add user
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data
+
+RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
     && mkdir -p /usr/src/php \
     && cd /usr/src/php \
@@ -45,7 +61,6 @@ RUN set -eux \
     && apk del --no-network .fetch-deps
 
 RUN set -eux \
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         icu-dev \

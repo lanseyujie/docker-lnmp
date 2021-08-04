@@ -2,8 +2,24 @@ FROM alpine:3.14
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
+ENV MIRROR dl-cdn.alpinelinux.org
+ENV TZ Asia/Shanghai
 ENV REDIS_VERSION 6.2.5
 ENV SHA256SUM 4b9a75709a1b74b3785e20a6c158cab94cf52298aa381eea947a678a60d551ae
+
+RUN set -eux \
+    \
+    # mirror
+    && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
+    \
+    # timezone
+    && apk add --no-cache --virtual .timezone-deps tzdata \
+    && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && apk del --no-network .timezone-deps \
+    \
+    # add user
+    && adduser -u 82 -D -S -s /sbin/nologin -G www-data redis
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
@@ -14,7 +30,6 @@ RUN set -eux \
     && apk del --no-network .fetch-deps
 
 RUN set -eux \
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data redis \
     \
     # grab su-exec for easy step-down from root
     && apk add --no-cache 'su-exec>=0.2' pwgen \
@@ -25,7 +40,8 @@ RUN set -eux \
         make \
         musl-dev \
         openssl-dev \
-    && mkdir -p /data /var/log/redis \
+    && mkdir -p /var/log/redis /data \
+    && chown redis:www-data -R /var/log/redis /data \
     && cd /usr/src/redis \
     && tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \
     && rm redis.tar.gz \
@@ -54,8 +70,7 @@ RUN set -eux \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )" \
     && apk add --no-network --virtual .redis-rundeps $runDeps \
-    && apk del --no-network .build-deps \
-    && chown redis:www-data -R /data /var/log/redis
+    && apk del --no-network .build-deps
 
 RUN set -eux \
     && sed -i 's/^bind 127.0.0.1 -::1$/bind * -::*/' /etc/redis.conf \
