@@ -15,7 +15,6 @@ RUN set -eux \
     && apk add --no-cache --virtual .timezone-deps tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    && apk del --no-network .timezone-deps \
     \
     # add user
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data mysql

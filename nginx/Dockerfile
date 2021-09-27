@@ -2,7 +2,6 @@ FROM alpine:3.14
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-
 ENV MIRROR dl-cdn.alpinelinux.org
 ENV TZ Asia/Shanghai
 ENV NGINX_VERSION 1.21.0
@@ -18,7 +17,6 @@ RUN set -eux \
     && apk add --no-cache --virtual .timezone-deps tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    && apk del --no-network .timezone-deps \
     \
     # add user
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data nginx

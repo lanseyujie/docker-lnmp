@@ -36,7 +36,6 @@ RUN set -eux \
     && apk add --no-cache --virtual .timezone-deps tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    && apk del --no-network .timezone-deps \
     \
     # mirror
     && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
