@@ -11,8 +11,8 @@ RUN set -eux \
     # mirror
     && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
     \
-    # timezone
-    && apk add --no-cache --virtual .timezone-deps tzdata \
+    # ca-certs && timezone
+    && apk add --no-cache ca-certificates tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     \

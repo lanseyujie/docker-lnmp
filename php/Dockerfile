@@ -32,8 +32,8 @@ ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 RUN set -eux \
     \
-    # timezone
-    && apk add --no-cache --virtual .timezone-deps tzdata \
+    # ca-certs && timezone
+    && apk add --no-cache ca-certificates tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     \
