@@ -2,9 +2,10 @@ FROM alpine:3.14
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV MIRROR dl-cdn.alpinelinux.org
-ENV TZ Asia/Shanghai
-ENV MARIADB_VERSION 10.5.8
+ARG MIRROR=dl-cdn.alpinelinux.org
+ARG TZ=Asia/Shanghai
+
+ENV MARIADB_VERSION 10.5.13
 
 RUN set -eux \
     \
