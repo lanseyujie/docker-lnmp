@@ -1,0 +1,61 @@
+name: Build Docker LNMP Images
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - mariadb/*
+      - nginx/*
+      - php/*
+      - redis/*
+  release:
+    types:
+      - published
+  watch:
+    types:
+      - started
+
+env:
+  REGISTRY_HOST: ${{ secrets.REGISTRY }}/${{ secrets.NAMESPACE }}
+  REGISTRY_NAMESPACE: ${{ secrets.NAMESPACE }}
+  REGISTRY_USERNAME: ${{ secrets.USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrets.PASSWORD }}
+
+jobs:
+  nginx:
+    name: nginx
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@master
+      - name: Build Image
+        run: sh script/build.sh nginx
+  redis:
+    name: redis
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@master
+      - name: Build Image
+        run: sh script/build.sh redis
+  maraidb:
+    name: maraidb
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@master
+      - name: Build Image
+        run: sh script/build.sh mariadb
+  php:
+    name: php
+    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@master
+      - name: Build Image
+        run: sh script/build.sh php
