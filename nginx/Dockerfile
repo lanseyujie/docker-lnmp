@@ -1,12 +1,13 @@
-FROM alpine:3.14
+FROM alpine:3.15
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV MIRROR dl-cdn.alpinelinux.org
-ENV TZ Asia/Shanghai
-ENV NGINX_VERSION 1.21.0
+ARG MIRROR=dl-cdn.alpinelinux.org
+ARG TZ=Asia/Shanghai
+
+ENV NGINX_VERSION 1.21.4
 ENV GPG_KEYS B0F4253373F8F6F510D42178520A9993A1C052F8
-ENV SHA256SUM fe192a4bac2bd3a769e8695cb9fe14a00e57eaceb919095347a83b5b2afc0771
+ENV SHA256SUM d1f72f474e71bcaaf465dcc7e6f7b6a4705e4b1ed95c581af31df697551f3bfe
 
 RUN set -eux \
     \
