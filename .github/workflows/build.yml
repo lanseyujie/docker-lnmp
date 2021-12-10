@@ -17,7 +17,7 @@ on:
       - started
 
 env:
-  REGISTRY_HOST: ${{ secrets.REGISTRY }}/${{ secrets.NAMESPACE }}
+  REGISTRY_HOST: ${{ secrets.REGISTRY }}
   REGISTRY_NAMESPACE: ${{ secrets.NAMESPACE }}
   REGISTRY_USERNAME: ${{ secrets.USERNAME }}
   REGISTRY_PASSWORD: ${{ secrets.PASSWORD }}
