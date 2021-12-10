@@ -1,11 +1,12 @@
-FROM alpine:3.14
+FROM alpine:3.15
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
-ENV MIRROR dl-cdn.alpinelinux.org
-ENV TZ Asia/Shanghai
-ENV REDIS_VERSION 6.2.5
-ENV SHA256SUM 4b9a75709a1b74b3785e20a6c158cab94cf52298aa381eea947a678a60d551ae
+ARG MIRROR=dl-cdn.alpinelinux.org
+ARG TZ=Asia/Shanghai
+
+ENV REDIS_VERSION 6.2.6
+ENV SHA256SUM 5b2b8b7a50111ef395bf1c1d5be11e6e167ac018125055daa8b5c2317ae131ab
 
 RUN set -eux \
     \
