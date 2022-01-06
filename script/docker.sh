@@ -33,6 +33,8 @@ apt update && sudo apt install -y docker-ce
 # use docker without sudo, need to reload shell in order to have new group settings applied
 # sudo usermod -aG docker "$USER"
 
-# install docker-compose
-curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+# install docker compose
+# https://docs.docker.com/compose/cli-command/#install-on-linux
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose

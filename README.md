@@ -9,22 +9,22 @@
 git clone https://github.com/lanseyujie/docker-lnmp.git && cd docker-lnmp
 
 # Build & Start
-docker-compose up -d
+docker compose up -d
 
 # Stop & Remove
-docker-compose down
+docker compose down
 
 # Start
-docker-compose start
+docker compose start
 
 # Restart
-docker-compose restart
+docker compose restart
 
 # Stop
-docker-compose stop
+docker compose stop
 
 # Logs
-docker-compose logs
+docker compose logs
 ```
 
 ## SSL Deploy
