@@ -33,17 +33,20 @@ docker compose logs
 # install acme.sh
 curl https://get.acme.sh | sh
 
-# set api key
+# register account
+acme.sh --register-account -m your@example.com
+
+# set api key and secret
 # see https://github.com/Neilpang/acme.sh/wiki/dnsapi
 export Ali_Key="12345678"
 export Ali_Secret="abcdefg"
 
-# issue a cert
+# issue a certificate by validating DNS TXT records
 # see https://github.com/Neilpang/acme.sh/wiki/%E8%AF%B4%E6%98%8E
 export TLD=example.com
 acme.sh --issue --dns dns_ali -d "$TLD" -d "*.$TLD"
 
-# auto update
+# install the certificate and update it automatically
 acme.sh --install-cert \
     -d "$TLD" \
     -d "*.$TLD" \
