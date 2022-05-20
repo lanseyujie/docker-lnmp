@@ -27,14 +27,9 @@ else
   echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 fi
 
-# install docker engine - community
-apt update && sudo apt install -y docker-ce
+# install docker engine(community) and compose plugin
+apt update && sudo apt install -y docker-ce docker-compose-plugin
 
 # use docker without sudo, need to reload shell in order to have new group settings applied
 # sudo usermod -aG docker "$USER"
 
-# install docker compose
-# https://docs.docker.com/compose/cli-command/#install-on-linux
-mkdir -p /usr/local/lib/docker/cli-plugins
-curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
-chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
