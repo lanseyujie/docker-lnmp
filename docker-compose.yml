@@ -32,8 +32,6 @@ services:
       - ./redis/redis.conf:/etc/redis.conf:rw
       - ./data/logs/redis/:/var/log/redis/:rw
       - ./data/redis/:/data/:rw
-    # environment:
-      # REDIS_PASSWORD: 123456
     restart: always
     container_name: redis
 
