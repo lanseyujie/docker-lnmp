@@ -4,13 +4,22 @@ set -e
 # first arg is `-f` or `--some-option`
 # or first arg is `something.conf`
 if [ "${1#-}" != "$1" ] || [ "${1%.conf}" != "$1" ]; then
-    set -- redis-server "$@"
+  set -- redis-server "$@"
 fi
 
 # allow the container to be started with `--user`
-if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
-    find . \! -user redis -exec chown redis:www-data '{}' +
-    set -- su-exec redis "$@"
+if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
+  # first boot
+  if [ ! -f /srv/dump.rdb ]; then
+    REDIS_USER=${REDIS_USER:-default}
+    REDIS_PASSWORD=${REDIS_PASSWORD:-$(pwgen 32 1)}
+    echo "[INFO] create redis user $REDIS_USER with password $REDIS_PASSWORD"
+    hash=$(printf %s "$REDIS_PASSWORD" | sha256sum | cut -d ' ' -f1)
+    echo "user $REDIS_USER on #$hash ~* &* +@all" >/etc/redis/users.acl
+  fi
+
+  find . \! -user redis -exec chown redis:www-data '{}' +
+  set -- su-exec redis "$@"
 fi
 
 exec "$@"
