@@ -1,17 +1,22 @@
 version: '3'
+
 services:
   mariadb:
-    build: ./mariadb
+    build:
+      context: ./mariadb
+      dockerfile: Dockerfile
+      args:
+        MIRROR: repo.huaweicloud.com
     image: docker-lnmp-mariadb:latest
     ports:
-      - "3306:3306"
+    - "3306:3306"
     networks:
-      - backend
+    - backend
     volumes:
-      - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
-      - ./mariadb/initdb.d/:/initdb.d/:ro
-      - ./data/logs/mysql/:/var/log/mysql/:rw
-      - ./data/mysql/:/data/:rw
+    - ./mariadb/conf.d/:/etc/my.cnf.d/:ro
+    - ./mariadb/initdb.d/:/initdb.d/:ro
+    - ./data/logs/mysql/:/var/log/mysql/:rw
+    - ./data/mysql/:/data/:rw
     environment:
       MYSQL_DATABASE: www
       MYSQL_USER: www
@@ -22,55 +27,70 @@ services:
     container_name: mariadb
 
   redis:
-    build: ./redis
+    build:
+      context: ./redis
+      dockerfile: Dockerfile
+      args:
+        MIRROR: repo.huaweicloud.com
     image: docker-lnmp-redis:latest
     ports:
-      - "6379:6379"
+    - "6379:6379"
     networks:
-      - backend
+    - backend
     volumes:
-      - ./redis/redis.conf:/etc/redis.conf:rw
-      - ./data/logs/redis/:/var/log/redis/:rw
-      - ./data/redis/:/data/:rw
+    - ./redis/etc/redis.conf:/etc/redis/redis.conf:ro
+    - ./data/logs/redis/:/var/log/redis/:rw
+    - ./data/redis/:/data/:rw
+    environment:
+      REDIS_USER: default
+      REDIS_PASSWORD: 123456
     restart: always
     container_name: redis
 
   php:
-    build: ./php
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+      args:
+        MIRROR: repo.huaweicloud.com
     image: docker-lnmp-php:latest
     depends_on:
-      - mariadb
-      - redis
+    - mariadb
+    - redis
     ports:
-      - "9000"
+    - "9000"
     networks:
-      - frontend
-      - backend
+    - frontend
+    - backend
     volumes:
-      - ./php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
-      - ./php/php-fpm.d/:/usr/local/etc/php-fpm.d/:ro
-      - ./php/php/php.ini-production:/usr/local/etc/php/php.ini:ro
-      - ./php/php/conf.d/:/usr/local/etc/php/conf.d/:ro
-      - ./data/logs/php/:/var/log/php/:rw
-      - ./data/wwwroot/:/data/:rw
+    - ./php/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
+    - ./php/php-fpm.d/:/usr/local/etc/php-fpm.d/:ro
+    - ./php/php/php.ini-production:/usr/local/etc/php/php.ini:ro
+    - ./php/php/conf.d/:/usr/local/etc/php/conf.d/:ro
+    - ./data/logs/php/:/var/log/php/:rw
+    - ./data/wwwroot/:/data/:rw
     restart: always
     container_name: php
 
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        MIRROR: repo.huaweicloud.com
     image: docker-lnmp-nginx:latest
     depends_on:
-      - php
+    - php
     ports:
-      - "80:80"
-      - "443:443"
+    - "80:80"
+    - "443:443"
     networks:
-      - frontend
+    - frontend
     volumes:
-      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
-      - ./nginx/ssl/:/etc/nginx/ssl/:ro
-      - ./data/logs/nginx/:/var/log/nginx/:rw
-      - ./data/wwwroot/:/data/:rw
+    - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
+    - ./nginx/ssl/:/etc/nginx/ssl/:ro
+    - ./data/logs/nginx/:/var/log/nginx/:rw
+    - ./data/wwwroot/:/data/:rw
     restart: always
     container_name: nginx
 
