@@ -1,6 +1,6 @@
 # docker-lnmp
 
-![Publish Docker LNMP Image](https://github.com/lanseyujie/docker-lnmp/workflows/Publish%20Docker%20LNMP%20Image/badge.svg)
+[![Build Docker LNMP Images](https://github.com/lanseyujie/docker-lnmp/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/lanseyujie/docker-lnmp/actions/workflows/build.yml)
 
 ## Usage
 

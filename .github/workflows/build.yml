@@ -3,7 +3,7 @@ name: Build Docker LNMP Images
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - mariadb/*
       - nginx/*
