@@ -1,13 +1,13 @@
-FROM alpine:3.15
+FROM alpine:3.17
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
 ARG MIRROR=dl-cdn.alpinelinux.org
 ARG TZ=Asia/Shanghai
 
-ENV NGINX_VERSION 1.21.4
-ENV GPG_KEYS B0F4253373F8F6F510D42178520A9993A1C052F8
-ENV SHA256SUM d1f72f474e71bcaaf465dcc7e6f7b6a4705e4b1ed95c581af31df697551f3bfe
+ENV NGINX_VERSION 1.23.3
+ENV GPG_KEYS 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 13C82A63B603576156E30A4EA0EA981B66B0D967 B0F4253373F8F6F510D42178520A9993A1C052F8 41DB92713D3BF4BFF3EE91069C5E7FA2F54977D4
+ENV SHA256SUM 75cb5787dbb9fae18b14810f91cc4343f64ce4c24e27302136fb52498042ba54
 
 RUN set -eux \
     \
@@ -30,7 +30,9 @@ RUN set -eux \
     && curl -fSL -o nginx.tar.gz.asc https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc \
     && echo "$SHA256SUM *nginx.tar.gz" | sha256sum -c - \
     && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --batch --keyserver keyserver.ubuntu.com --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" \
+    && for key in $GPG_KEYS; do \
+        gpg --batch --keyserver keyserver.ubuntu.com --keyserver-options timeout=10 --recv-keys "$key"; \
+    done \
     && gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
@@ -47,7 +49,7 @@ RUN set -eux \
         geoip-dev \
         openssl-dev \
         linux-headers \
-    && mkdir -p /usr/lib/nginx/modules /etc/nginx/conf.d /etc/nginx/ssl /data/default /var/cache/nginx /var/log/nginx \
+    && mkdir -p /usr/lib/nginx/modules /etc/nginx/conf.d /etc/nginx/ssl /srv/default /var/cache/nginx /var/log/nginx \
     && cd /usr/src/nginx \
     && tar -xzf nginx.tar.gz -C /usr/src/nginx --strip-components=1 \
     && rm nginx.tar.gz \
@@ -93,7 +95,7 @@ RUN set -eux \
     && ./configure $CONFIG \
     && make -j$(nproc) \
     && make install \
-    && install -o nginx -g www-data -m 644 html/index.html /data/default \
+    && install -o nginx -g www-data -m 644 html/index.html /srv/default \
     && strip /usr/sbin/nginx /usr/lib/nginx/modules/*.so \
     && rm -rf /etc/nginx/html /usr/src/nginx \
     && runDeps="$( \
@@ -104,7 +106,7 @@ RUN set -eux \
     )" \
     && apk add --no-network --virtual .nginx-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && chown nginx:www-data -R /usr/lib/nginx /etc/nginx /data /var/cache/nginx /var/log/nginx
+    && chown nginx:www-data -R /usr/lib/nginx /etc/nginx /srv /var/cache/nginx /var/log/nginx
 
 RUN set -eux \
     \
@@ -113,9 +115,8 @@ RUN set -eux \
 
 COPY --chown=nginx:www-data nginx.conf /etc/nginx/nginx.conf
 COPY --chown=nginx:www-data conf.d/http/default.conf /etc/nginx/conf.d/http/default.conf
-COPY --chown=nginx:www-data conf.d/stream/default.conf /etc/nginx/conf.d/stream/default.conf
 
-WORKDIR /data
+WORKDIR /srv
 
 EXPOSE 80 443
 
