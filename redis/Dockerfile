@@ -1,13 +1,14 @@
-FROM alpine:3.15
+FROM alpine:3.17
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
 ARG MIRROR=dl-cdn.alpinelinux.org
 ARG TZ=Asia/Shanghai
 
-ENV REDIS_VERSION 7.0.0
-ENV SHA256SUM 284d8bd1fd85d6a55a05ee4e7c31c31977ad56cbf344ed83790beeb148baa720
+ENV REDIS_VERSION 7.0.9
+ENV SHA256SUM f77135c2a47c9151d4028bfea3b34470ab4d324d1484f79a84c6f32a3cfb9f65
 
+# pre-installation
 RUN set -eux \
     \
     # mirror
@@ -21,6 +22,7 @@ RUN set -eux \
     # add user
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data redis
 
+# download & verify
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
     && mkdir -p /usr/src/redis \
@@ -29,6 +31,7 @@ RUN set -eux \
     && echo "$SHA256SUM *redis.tar.gz" | sha256sum -c - \
     && apk del --no-network .fetch-deps
 
+# build & install
 RUN set -eux \
     \
     # grab su-exec for easy step-down from root
@@ -62,10 +65,9 @@ RUN set -eux \
     && export BUILD_TLS=yes \
     && make -C /usr/src/redis -j$(nproc) all \
     && make -C /usr/src/redis install \
-    && mkdir -p /etc/redis /var/log/redis /data \
+    && mkdir -p /etc/redis /var/log/redis /srv \
     && cp -rvp /usr/src/redis/*.conf /etc/redis \
-    && touch /etc/redis/users.acl \
-    && chown redis:www-data -R /etc/redis /var/log/redis /data \
+    && chown redis:www-data -R /etc/redis /var/log/redis /srv \
     && rm -r /usr/src/redis \
     && strip /usr/local/bin/redis* \
     && cd / \
@@ -78,10 +80,10 @@ RUN set -eux \
     && apk add --no-network --virtual .redis-rundeps $runDeps \
     && apk del --no-network .build-deps
 
+# configure & test
 RUN set -eux \
     && sed -i 's|^bind 127.0.0.1 -::1$|bind * -::*|' /etc/redis/redis.conf \
-    && sed -i 's|^logfile ""$|logfile /var/log/redis/redis.log|' /etc/redis/redis.conf \
-    && sed -i 's|^dir ./$|dir /data|' /etc/redis/redis.conf \
+    && sed -i 's|^dir ./$|dir /srv|' /etc/redis/redis.conf \
     && sed -i 's|^# maxmemory <bytes>$|maxmemory 256MB|' /etc/redis/redis.conf \
     && sed -i 's|^# aclfile /etc/redis/users.acl$|aclfile /etc/redis/users.acl|' /etc/redis/redis.conf \
     && redis-server --version \
@@ -91,9 +93,9 @@ COPY docker-entrypoint /usr/local/bin
 
 ENTRYPOINT ["docker-entrypoint"]
 
-VOLUME /data
+VOLUME /srv
 
-WORKDIR /data
+WORKDIR /srv
 
 EXPOSE 6379
 

@@ -9,8 +9,7 @@ fi
 
 # allow the container to be started with `--user`
 if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
-  # first boot
-  if [ ! -f /srv/dump.rdb ]; then
+  if [ ! -f /etc/redis/users.acl ]; then
     REDIS_USER=${REDIS_USER:-default}
     REDIS_PASSWORD=${REDIS_PASSWORD:-$(pwgen 32 1)}
     echo "[INFO] create redis user $REDIS_USER with password $REDIS_PASSWORD"
