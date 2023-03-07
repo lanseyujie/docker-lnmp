@@ -33,13 +33,13 @@ ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 RUN set -eux \
     \
+    # mirror
+    && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
+    \
     # ca-certs && timezone
     && apk add --no-cache ca-certificates tzdata \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    \
-    # mirror
-    && sed -i "s/dl-cdn.alpinelinux.org/$MIRROR/g" /etc/apk/repositories \
     \
     # add user
     && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data
