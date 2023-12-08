@@ -1,0 +1,4 @@
+*
+!.gitignore
+!default.http.conf
+!*.example

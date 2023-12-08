@@ -1,0 +1,30 @@
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name example.com;
+
+  root /srv/example.com;
+
+  location / {
+    proxy_connect_timeout 20;
+    proxy_read_timeout 30;
+    proxy_send_timeout 30;
+    send_timeout 30;
+    proxy_redirect default;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_http_version 1.1;
+    proxy_ssl_server_name on;
+    proxy_intercept_errors on;
+    proxy_pass http://localhost;
+  }
+
+  location /nginx_status {
+    stub_status on;
+    access_log off;
+    allow 127.0.0.1;
+    deny all;
+  }
+}
