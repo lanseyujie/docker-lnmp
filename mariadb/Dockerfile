@@ -1,11 +1,11 @@
-FROM alpine:3.17
+FROM alpine:3.19
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
 ARG MIRROR=dl-cdn.alpinelinux.org
 ARG TZ=Asia/Shanghai
 
-ENV MARIADB_VERSION 10.6.12
+ENV MARIADB_VERSION 10.11.5
 
 RUN set -eux \
     \
@@ -17,12 +17,13 @@ RUN set -eux \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     \
-    # add user
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data mysql
+    # create group and user
+    && addgroup -g 1000 -S mysql \
+    && adduser -u 1000 -D -S -s /sbin/nologin -G mysql mysql
 
 RUN set -eux \
     && mkdir -p /etc/my.cnf.d /var/run/mysqld /var/log/mysql /var/lib/mysql /initdb.d \
-    && chown mysql:www-data -R /etc/my.cnf.d /var/run/mysqld /var/log/mysql /var/lib/mysql /initdb.d \
+    && chown mysql:mysql -R /etc/my.cnf.d /var/run/mysqld /var/log/mysql /var/lib/mysql /initdb.d \
     && apk add --no-cache mariadb mariadb-client 'su-exec>=0.2' pwgen
 
 RUN set -eux \
