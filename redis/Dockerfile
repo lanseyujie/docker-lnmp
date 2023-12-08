@@ -1,12 +1,10 @@
-FROM alpine:3.17
-
-LABEL maintainer="Wildlife <admin@lanseyujie.com>"
+FROM alpine:3.19
 
 ARG MIRROR=dl-cdn.alpinelinux.org
 ARG TZ=Asia/Shanghai
 
-ENV REDIS_VERSION 7.0.9
-ENV SHA256SUM f77135c2a47c9151d4028bfea3b34470ab4d324d1484f79a84c6f32a3cfb9f65
+ENV REDIS_VERSION 7.2.3
+ENV SHA256SUM 3e2b196d6eb4ddb9e743088bfc2915ccbb42d40f5a8a3edd8cb69c716ec34be7
 
 # pre-installation
 RUN set -eux \
@@ -19,15 +17,16 @@ RUN set -eux \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     \
-    # add user
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data redis
+    # create group and user
+    && addgroup -g 1000 -S redis \
+    && adduser -u 1000 -D -S -h /var/cache/redis -s /sbin/nologin -G redis redis
 
 # download & verify
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps curl \
     && mkdir -p /usr/src/redis \
     && cd /usr/src/redis \
-    && curl -fSL -o redis.tar.gz http://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
+    && curl -fSL -o redis.tar.gz https://download.redis.io/releases/redis-$REDIS_VERSION.tar.gz \
     && echo "$SHA256SUM *redis.tar.gz" | sha256sum -c - \
     && apk del --no-network .fetch-deps
 
@@ -67,7 +66,7 @@ RUN set -eux \
     && make -C /usr/src/redis install \
     && mkdir -p /etc/redis /var/log/redis /srv \
     && cp -rvp /usr/src/redis/*.conf /etc/redis \
-    && chown redis:www-data -R /etc/redis /var/log/redis /srv \
+    && chown redis:redis -R /etc/redis /var/log/redis /srv \
     && rm -r /usr/src/redis \
     && strip /usr/local/bin/redis* \
     && cd / \
@@ -83,6 +82,7 @@ RUN set -eux \
 # configure & test
 RUN set -eux \
     && sed -i 's|^bind 127.0.0.1 -::1$|bind * -::*|' /etc/redis/redis.conf \
+    && sed -i 's|^logfile ""$|# logfile /var/log/redis/redis.log|' /etc/redis/redis.conf \
     && sed -i 's|^dir ./$|dir /srv|' /etc/redis/redis.conf \
     && sed -i 's|^# maxmemory <bytes>$|maxmemory 256MB|' /etc/redis/redis.conf \
     && sed -i 's|^# aclfile /etc/redis/users.acl$|aclfile /etc/redis/users.acl|' /etc/redis/redis.conf \
