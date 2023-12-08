@@ -112,7 +112,7 @@ docker_init_dir() {
     # After connecting you can set the password, if you would need to be
     # able to connect as any of these users with a password and without sudo
     mysql_note "Initializing database files"
-    mysql_install_db --user=mysql --datadir=/data --rpm
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm
     mysql_note "Database files initialized"
 }
 
@@ -186,20 +186,19 @@ _main() {
         mysql_note "Entrypoint script for MySQL Server ${MARIADB_VERSION} started."
 
         # creates folders for the database
-        mkdir -p /data /var/log/mysql
+        mkdir -p /var/log/mysql
 
         # If container is started as root user, restart as dedicated mysql user
         if [ "$(id -u)" = '0' ]; then
             # ensures permission for user mysql of run as root
             # this will cause less disk access than `chown -R`
-            find /data \! -user mysql -exec chown mysql:www-data '{}' +
-            find /var/log/mysql \! -user mysql -exec chown mysql:www-data '{}' +
+            find /var/log/mysql \! -user mysql -exec chown mysql:mysql '{}' +
             mysql_note "Switching to dedicated user 'mysql'"
             exec su-exec mysql "$0" "$@"
         fi
 
         # there's no database, so it needs to be initialized
-        if [ ! -d "/data/mysql" ]; then
+        if [ ! -d "/var/lib/mysql/mysql" ]; then
             # check dir permissions to reduce likelihood of half-initialized database
             ls /initdb.d/ >/dev/null
 

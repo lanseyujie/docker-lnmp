@@ -17,7 +17,7 @@ if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
     echo "user $REDIS_USER on #$hash ~* &* +@all" >/etc/redis/users.acl
   fi
 
-  find . \! -user redis -exec chown redis:www-data '{}' +
+  find . \! -user redis -exec chown redis:redis '{}' +
   set -- su-exec redis "$@"
 fi
 

@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       args:
         MIRROR: ${MIRROR}
-    image: docker-lnmp-mariadb:${MARIADB_VERSION:-latest}
+    image: ${REGISTRY_PREFIX}docker-lnmp-mariadb:${MARIADB_VERSION:-latest}
     ports:
     - "3306:3306"
     networks:
@@ -32,13 +32,13 @@ services:
       dockerfile: Dockerfile
       args:
         MIRROR: ${MIRROR}
-    image: docker-lnmp-redis:${REDIS_VERSION:-latest}
+    image: ${REGISTRY_PREFIX}docker-lnmp-redis:${REDIS_VERSION:-latest}
     ports:
     - "6379:6379"
     networks:
     - backend
     volumes:
-    - ./redis/etc/redis.conf:/etc/redis/redis.conf:ro
+    - ./redis/conf.d/redis.conf:/etc/redis/redis.conf:ro
     - ./data/logs/redis/:/var/log/redis/:rw
     - ./data/redis/:/srv/:rw
     environment:
@@ -53,7 +53,7 @@ services:
       dockerfile: Dockerfile
       args:
         MIRROR: ${MIRROR}
-    image: docker-lnmp-php:${PHP_VERSION:-latest}
+    image: ${REGISTRY_PREFIX}docker-lnmp-php:${PHP_VERSION:-latest}
     depends_on:
     - mariadb
     - redis
@@ -78,7 +78,7 @@ services:
       dockerfile: Dockerfile
       args:
         MIRROR: ${MIRROR}
-    image: docker-lnmp-nginx:${NGINX_VERSION:-latest}
+    image: ${REGISTRY_PREFIX}docker-lnmp-nginx:${NGINX_VERSION:-latest}
     depends_on:
     - php
     ports:

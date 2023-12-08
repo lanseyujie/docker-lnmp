@@ -1,0 +1,28 @@
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name localhost;
+
+  charset utf-8;
+  access_log /var/log/nginx/localhost.access.log main;
+
+  root /srv/default;
+  index index.php index.html index.htm;
+
+  location / {
+    try_files $uri $uri/ /index.php$is_args$args;
+  }
+
+  location ~ [^/]\.php(/|$) {
+    # note: comment here if you use path info
+    # try_files  $uri =404;
+    fastcgi_pass php:9000;
+    fastcgi_index index.php;
+    include /etc/nginx/fastcgi.conf;
+  }
+
+  location ~ /\. {
+    deny all;
+  }
+}
