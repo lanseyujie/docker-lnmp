@@ -1,13 +1,13 @@
-FROM alpine:3.17
+FROM alpine:3.19
 
 LABEL maintainer="Wildlife <admin@lanseyujie.com>"
 
 ARG MIRROR=dl-cdn.alpinelinux.org
 ARG TZ=Asia/Shanghai
 
-ENV PHP_VERSION 8.2.3
-ENV GPG_KEYS 39B641343D8C104B2B146DC3F9C39DC0B9698544 E60913E4DF209907D8E30D96659A97C9CF2A795A 1198C0117593497A5EC5C199286AF1F9897469DC
-ENV SHA256SUM 7c475bcbe61d28b6878604b1b6f387f39d1a63b5f21fa8156fd7aa615d43e259
+ENV PHP_VERSION 8.3.0
+ENV GPG_KEYS 1198C0117593497A5EC5C199286AF1F9897469DC C28D937575603EB4ABB725861C0779DC5C0A9DE4 AFD8691FDAEDF03BDF6E460563F15A9B715376CA
+ENV SHA256SUM 557ae14650f1d1984d3213e3fcd8d93a5f11418b3f8026d3a2d5022251163951
 
 # dependencies required for running "phpize"
 ENV PHPIZE_DEPS \
@@ -41,8 +41,9 @@ RUN set -eux \
     && cp -f /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     \
-    # add user
-    && adduser -u 82 -D -S -s /sbin/nologin -G www-data www-data
+    # create group and user
+    && addgroup -g 1000 -S php \
+    && adduser -u 1000 -D -S -s /sbin/nologin -G php php
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps gnupg curl \
@@ -63,6 +64,9 @@ RUN set -eux \
 RUN set -eux \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
+        linux-headers \
+        coreutils \
+        argon2-dev \
         icu-dev \
         oniguruma-dev \
         libjpeg-turbo-dev \
@@ -73,11 +77,12 @@ RUN set -eux \
         sqlite-dev \
         curl-dev \
         gettext-dev \
+        libsodium-dev \
         libedit-dev \
         libxslt-dev \
         libxml2-dev \
         libzip-dev \
-    && mkdir -p /usr/local/etc/php/conf.d /data/default /var/log/php \
+    && mkdir -p /usr/local/etc/php/conf.d /srv/default /var/log/php \
     && cd /usr/src/php \
     && tar -xzf php.tar.gz -C /usr/src/php --strip-components=1 \
     && rm php.tar.gz \
@@ -88,8 +93,9 @@ RUN set -eux \
         --with-config-file-path=/usr/local/etc/php \
         --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
         --with-libdir=/usr/lib \
-        --with-fpm-user=www-data \
-        --with-fpm-group=www-data \
+        --with-fpm-user=php \
+        --with-fpm-group=php \
+        --with-pic \
         --disable-cgi \
         --disable-rpath \
         --enable-option-checking=fatal \
@@ -119,6 +125,8 @@ RUN set -eux \
         --with-pdo-mysql=mysqlnd \
         --with-sqlite3=/usr \
         --with-pdo-sqlite=/usr \
+        --with-password-argon2 \
+        --with-sodium=shared \
         --with-xsl \
         --with-zlib \
         --with-zip \
@@ -130,19 +138,19 @@ RUN set -eux \
     && make install \
     && find /usr/local/bin /usr/local/sbin -type f -perm +0111 -exec strip --strip-all '{}' + || true \
     && make clean \
-    && echo '<?php phpinfo();' > /data/default/index.php \
+    && echo '<?php phpinfo();' > /srv/default/index.php \
     && cp -v php.ini-* /usr/local/etc/php \
     && rm -rf /usr/src/php \
     && cd / \
     && runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
-            | tr ',' '\n' \
-            | sort -u \
-            | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-    )" \
+        | tr ',' '\n' \
+        | sort -u \
+        | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+        )" \
     && apk add --no-network --virtual .php-rundeps $runDeps \
     && apk del --no-network .build-deps \
-    && chown www-data:www-data -R /usr/local/etc/php /data /var/log/php
+    && chown php:php -R /usr/local/etc/php /srv /var/log/php
 
 RUN set -eux \
     && cd /usr/local/etc \
@@ -182,7 +190,7 @@ COPY docker-entrypoint /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint"]
 
-WORKDIR /data
+WORKDIR /srv
 
 EXPOSE 9000
 
