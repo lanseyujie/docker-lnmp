@@ -19,17 +19,10 @@ apt update && apt install -y curl gnupg2
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/docker.gpg
 
 # set up the stable repository
-if [ "$(lsb_release -si)" = 'Ubuntu' ]; then
-  # for ubuntu
-  echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
-else
-  # for debian
-  echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
-fi
+echo "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -si | tr '[:upper:]' '[:lower:]') $(lsb_release -sc) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
 # install docker engine(community) and compose plugin
 apt update && sudo apt install -y docker-ce docker-compose-plugin
 
 # use docker without sudo, need to reload shell in order to have new group settings applied
 # sudo usermod -aG docker "$USER"
-
